@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Cowboy Church Wedding Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #C7745C;
+            --primary-dark: #A85E48;
+            --secondary: #8B9D83;
+            --dark: #4A3C32;
+            --light: #F5E6D3;
+            --cream: #FFF8F0;
+            --border: #E5D5C3;
+            --success: #6B9D6B;
+            --warning: #D4A574;
+            --danger: #C75C5C;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #F8F9FA;
+            color: var(--dark);
+        }
+
+        /* Layout */
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--dark);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .sidebar-subtitle {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.5;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item.active {
+            background: rgba(199, 116, 92, 0.2);
+            border-left-color: var(--primary);
+        }
+
+        .nav-icon {
+            font-size: 1.2rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .top-bar-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6B7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.65rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--dark);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            background: var(--light);
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover {
+            background: #F9FAFB;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .badge-warning {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .badge-danger {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .badge-info {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Image Upload */
+        .image-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .image-upload-area:hover {
+            border-color: var(--primary);
+            background: #FAFAFA;
+        }
+
+        .image-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .image-preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--light);
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-remove {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #9CA3AF;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .action-btn:hover {
+            background: var(--light);
+        }
+
+        .action-btn.edit {
+            color: var(--secondary);
+        }
+
+        .action-btn.delete {
+            color: var(--danger);
+        }
+
+        /* Calendar */
+        .calendar {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .calendar-day:hover {
+            background: var(--light);
+        }
+
+        .calendar-day.booked {
+            background: var(--primary);
+            color: white;
+        }
+
+        .calendar-day.available {
+            border: 2px solid var(--success);
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Wedding Admin</div>
+                <div class="sidebar-subtitle">Cowboy Church</div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <div class="nav-item active" data-page="dashboard">
+                        <span class="nav-icon">📊</span>
+                        <span>Dashboard</span>
+                    </div>
+                    <div class="nav-item" data-page="bookings">
+                        <span class="nav-icon">📅</span>
+                        <span>Bookings</span>
+                    </div>
+                    <div class="nav-item" data-page="inquiries">
+                        <span class="nav-icon">✉️</span>
+                        <span>Inquiries</span>
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Content</div>
+                    <div class="nav-item" data-page="website">
+                        <span class="nav-icon">🌐</span>
+                        <span>Website Content</span>
+                    </div>
+                    <div class="nav-item" data-page="gallery">
+                        <span class="nav-icon">🖼️</span>
+                        <span>Photo Gallery</span>
+                    </div>
+                    <div class="nav-item" data-page="testimonials">
+                        <span class="nav-icon">⭐</span>
+                        <span>Testimonials</span>
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Settings</div>
+                    <div class="nav-item" data-page="venues">
+                        <span class="nav-icon">⛪</span>
+                        <span>Venue Settings</span>
+                    </div>
+                    <div class="nav-item" data-page="pricing">
+                        <span class="nav-icon">💰</span>
+                        <span>Pricing & Packages</span>
+                    </div>
+                    <div class="nav-item" data-page="settings">
+                        <span class="nav-icon">⚙️</span>
+                        <span>General Settings</span>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div class="page-content" id="dashboard-page">
+                <div class="top-bar">
+                    <h1 class="page-title">Dashboard</h1>
+                    <div class="top-bar-actions">
+                        <button class="btn btn-outline">View Website</button>
+                        <button class="btn btn-primary">+ New Booking</button>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Bookings</div>
+                        <div class="stat-value">24</div>
+                        <div class="stat-change positive">↑ 12% from last month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Pending Inquiries</div>
+                        <div class="stat-value">8</div>
+                        <div class="stat-change">3 new today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Revenue (YTD)</div>
+                        <div class="stat-value">$48.5K</div>
+                        <div class="stat-change positive">↑ 28% from last year</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Upcoming Events</div>
+                        <div class="stat-value">6</div>
+                        <div class="stat-change">Next: March 15</div>
+                    </div>
+                </div>
+
+                <!-- Recent Bookings -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Recent Bookings</h2>
+                        <button class="btn btn-outline">View All</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Couple</th>
+                                    <th>Date</th>
+                                    <th>Venue</th>
+                                    <th>Guests</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Sarah & John Smith</td>
+                                    <td>June 15, 2026</td>
+                                    <td>Chapel + Pavilion</td>
+                                    <td>150</td>
+                                    <td><span class="badge badge-success">Confirmed</span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="action-btn edit">✏️</button>
+                                            <button class="action-btn">👁️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Emily & Michael Johnson</td>
+                                    <td>July 20, 2026</td>
+                                    <td>Chapel Only</td>
+                                    <td>100</td>
+                                    <td><span class="badge badge-warning">Pending</span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="action-btn edit">✏️</button>
+                                            <button class="action-btn">👁️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Jessica & David Brown</td>
+                                    <td>August 5, 2026</td>
+                                    <td>Pavilion Only</td>
+                                    <td>200</td>
+                                    <td><span class="badge badge-success">Confirmed</span></td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="action-btn edit">✏️</button>
+                                            <button class="action-btn">👁️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bookings Page -->
+            <div class="page-content hidden" id="bookings-page">
+                <div class="top-bar">
+                    <h1 class="page-title">Manage Bookings</h1>
+                    <div class="top-bar-actions">
+                        <button class="btn btn-primary" onclick="openModal('booking-modal')">+ New Booking</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="all-bookings">All Bookings</div>
+                        <div class="tab" data-tab="confirmed">Confirmed</div>
+                        <div class="tab" data-tab="pending">Pending</div>
+                        <div class="tab" data-tab="calendar-view">Calendar View</div>
+                    </div>
+
+                    <div class="tab-content active" id="all-bookings">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Couple Names</th>
+                                        <th>Wedding Date</th>
+                                        <th>Venue</th>
+                                        <th>Guest Count</th>
+                                        <th>Package</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bookings-table-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="calendar-view">
+                        <div class="calendar">
+                            <div class="calendar-header">
+                                <button class="btn btn-outline">← Previous</button>
+                                <h3>March 2026</h3>
+                                <button class="btn btn-outline">Next →</button>
+                            </div>
+                            <div class="calendar-grid" id="calendar-grid">
+                                <!-- Calendar populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Website Content Page -->
+            <div class="page-content hidden" id="website-page">
+                <div class="top-bar">
+                    <h1 class="page-title">Website Content</h1>
+                    <div class="top-bar-actions">
+                        <button class="btn btn-outline">Preview Changes</button>
+                        <button class="btn btn-success" onclick="saveWebsiteContent()">Save Changes</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="hero-section">Hero Section</div>
+                        <div class="tab" data-tab="about-section">About</div>
+                        <div class="tab" data-tab="services-section">Services</div>
+                        <div class="tab" data-tab="contact-section">Contact</div>
+                    </div>
+
+                    <div class="tab-content active" id="hero-section">
+                        <div class="form-group">
+                            <label class="form-label">Main Title</label>
+                            <input type="text" class="form-input" value="Cowboy Church of Maple Valley" id="hero-title">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Subtitle</label>
+                            <input type="text" class="form-input" value="at Dandelion Chapel" id="hero-subtitle">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tagline</label>
+                            <textarea class="form-textarea" id="hero-tagline">Where rustic charm meets timeless elegance in the heart of the valley</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Hero Background Image</label>
+                            <div class="image-upload-area" onclick="document.getElementById('hero-image').click()">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">📸</div>
+                                <div>Click to upload or drag and drop</div>
+                                <div style="font-size: 0.85rem; color: #9CA3AF; margin-top: 0.5rem;">PNG, JPG up to 5MB</div>
+                            </div>
+                            <input type="file" id="hero-image" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="about-section">
+                        <div class="form-group">
+                            <label class="form-label">Section Title</label>
+                            <input type="text" class="form-input" value="Your Perfect Day Awaits">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Main Description (Paragraph 1)</label>
+                            <textarea class="form-textarea">Nestled in the picturesque landscape of Maple Valley, Dandelion Chapel offers a unique wedding experience that blends the warmth of cowboy tradition with the sacred beauty of a countryside chapel.</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Main Description (Paragraph 2)</label>
+                            <textarea class="form-textarea">Our venue celebrates the spirit of the West while providing all the comforts and elegance your special day deserves.</textarea>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="services-section">
+                        <div id="services-list">
+                            <div class="form-group" style="border: 2px solid var(--border); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <h4 style="margin: 0;">Service 1</h4>
+                                    <button class="btn btn-danger" onclick="removeService(this)" style="padding: 0.5rem 1rem;">Remove</button>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Service Title</label>
+                                    <input type="text" class="form-input" value="Ceremony Services">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Service Description</label>
+                                    <textarea class="form-textarea">Our experienced pastors provide heartfelt, personalized ceremonies that honor your faith and love story in true western tradition.</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Icon (Emoji or Symbol)</label>
+                                    <input type="text" class="form-input" value="⛪" placeholder="e.g., ⛪, 💒, 🎵">
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="border: 2px solid var(--border); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <h4 style="margin: 0;">Service 2</h4>
+                                    <button class="btn btn-danger" onclick="removeService(this)" style="padding: 0.5rem 1rem;">Remove</button>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Service Title</label>
+                                    <input type="text" class="form-input" value="Event Coordination">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Service Description</label>
+                                    <textarea class="form-textarea">Professional wedding coordinators ensure every detail flows seamlessly from ceremony to reception.</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Icon (Emoji or Symbol)</label>
+                                    <input type="text" class="form-input" value="📋" placeholder="e.g., ⛪, 💒, 🎵">
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="border: 2px solid var(--border); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <h4 style="margin: 0;">Service 3</h4>
+                                    <button class="btn btn-danger" onclick="removeService(this)" style="padding: 0.5rem 1rem;">Remove</button>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Service Title</label>
+                                    <input type="text" class="form-input" value="Catering Options">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Service Description</label>
+                                    <textarea class="form-textarea">From elegant sit-down dinners to authentic BBQ feasts, we partner with premier caterers for your perfect menu.</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Icon (Emoji or Symbol)</label>
+                                    <input type="text" class="form-input" value="🍽️" placeholder="e.g., ⛪, 💒, 🎵">
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="border: 2px solid var(--border); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <h4 style="margin: 0;">Service 4</h4>
+                                    <button class="btn btn-danger" onclick="removeService(this)" style="padding: 0.5rem 1rem;">Remove</button>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Service Title</label>
+                                    <input type="text" class="form-input" value="Décor & Setup">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Service Description</label>
+                                    <textarea class="form-textarea">Rustic elegance comes standard with customizable options including flowers, table settings, and lighting.</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Icon (Emoji or Symbol)</label>
+                                    <input type="text" class="form-input" value="🌸" placeholder="e.g., ⛪, 💒, 🎵">
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="border: 2px solid var(--border); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <h4 style="margin: 0;">Service 5</h4>
+                                    <button class="btn btn-danger" onclick="removeService(this)" style="padding: 0.5rem 1rem;">Remove</button>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Service Title</label>
+                                    <input type="text" class="form-input" value="Photography Spots">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Service Description</label>
+                                    <textarea class="form-textarea">Stunning backdrops throughout the property including the chapel, meadows, vintage barn, and sunset overlook.</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Icon (Emoji or Symbol)</label>
+                                    <input type="text" class="form-input" value="📸" placeholder="e.g., ⛪, 💒, 🎵">
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="border: 2px solid var(--border); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                    <h4 style="margin: 0;">Service 6</h4>
+                                    <button class="btn btn-danger" onclick="removeService(this)" style="padding: 0.5rem 1rem;">Remove</button>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Service Title</label>
+                                    <input type="text" class="form-input" value="Accommodations">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Service Description</label>
+                                    <textarea class="form-textarea">Partnership with local lodges and ranches to host your wedding party and out-of-town guests.</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Icon (Emoji or Symbol)</label>
+                                    <input type="text" class="form-input" value="🏨" placeholder="e.g., ⛪, 💒, 🎵">
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline mt-2" onclick="addService()">+ Add New Service</button>
+                    </div>
+
+                    <div class="tab-content" id="contact-section">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Phone Number</label>
+                                <input type="tel" class="form-input" value="(555) 555-1234">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" class="form-input" value="weddings@cowboychurchmaplevalley.com">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Physical Address</label>
+                            <textarea class="form-textarea">123 Dandelion Lane, Maple Valley, State 12345</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Business Hours</label>
+                            <textarea class="form-textarea">Monday - Friday: 9:00 AM - 5:00 PM
+Saturday: By Appointment
+Sunday: Closed</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gallery Page -->
+            <div class="page-content hidden" id="gallery-page">
+                <div class="top-bar">
+                    <h1 class="page-title">Photo Gallery</h1>
+                    <div class="top-bar-actions">
+                        <button class="btn btn-primary" onclick="document.getElementById('gallery-upload').click()">+ Upload Photos</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="form-group">
+                        <input type="file" id="gallery-upload" multiple accept="image/*" style="display: none;" onchange="handleGalleryUpload(event)">
+                        <div class="image-preview" id="gallery-preview">
+                            <!-- Gallery images populated here -->
+                            <div class="image-preview-item">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23F5E6D3' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='60' fill='%236B5447'%3E⛪%3C/text%3E%3C/svg%3E" alt="Chapel">
+                                <button class="image-remove" onclick="removeImage(this)">×</button>
+                            </div>
+                            <div class="image-preview-item">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23F5E6D3' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='60' fill='%236B5447'%3E🌾%3C/text%3E%3C/svg%3E" alt="Pavilion">
+                                <button class="image-remove" onclick="removeImage(this)">×</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Venues Page -->
+            <div class="page-content hidden" id="venues-page">
+                <div class="top-bar">
+                    <h1 class="page-title">Manage Venues</h1>
+                    <div class="top-bar-actions">
+                        <button class="btn btn-primary" onclick="openModal('add-venue-modal')">+ Add New Venue</button>
+                        <button class="btn btn-success" onclick="saveVenueSettings()">Save All Changes</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Dandelion Chapel</h3>
+                        <button class="btn btn-danger" onclick="confirmDeleteVenue('chapel')">Delete Venue</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Venue Name</label>
+                        <input type="text" class="form-input" value="Dandelion Chapel" id="chapel-name">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Maximum Capacity</label>
+                            <input type="number" class="form-input" value="150" id="chapel-capacity">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Base Price ($)</label>
+                            <input type="number" class="form-input" value="1500" id="chapel-price">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Icon/Emoji</label>
+                        <input type="text" class="form-input" value="⛪" id="chapel-icon" placeholder="e.g., ⛪, 🏛️, 💒">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Short Description</label>
+                        <textarea class="form-textarea" id="chapel-description">Our intimate chapel provides a sacred setting for your ceremony, featuring rustic wooden pews, exposed beams, and abundant natural light filtering through vintage windows.</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Features & Details</label>
+                        <div style="margin-bottom: 0.5rem;">
+                            <input type="text" class="form-input" value="Capacity: Up to 150 guests" style="margin-bottom: 0.5rem;">
+                            <input type="text" class="form-input" value="Features: Altar, sound system, climate control" style="margin-bottom: 0.5rem;">
+                            <input type="text" class="form-input" value="Style: Rustic chapel with modern amenities">
+                        </div>
+                        <button class="btn btn-outline" onclick="addVenueDetail(this)">+ Add Detail Line</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Venue Images</label>
+                        <div class="image-upload-area" onclick="document.getElementById('chapel-images').click()">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">📸</div>
+                            <div>Click to upload venue photos</div>
+                            <div style="font-size: 0.85rem; color: #9CA3AF; margin-top: 0.5rem;">PNG, JPG up to 5MB each</div>
+                        </div>
+                        <input type="file" id="chapel-images" multiple accept="image/*" style="display: none;">
+                        <div class="image-preview mt-1">
+                            <div class="image-preview-item">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23F5E6D3' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='60' fill='%236B5447'%3E⛪%3C/text%3E%3C/svg%3E" alt="Chapel">
+                                <button class="image-remove" onclick="removeImage(this)">×</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" checked id="chapel-available"> 
+                            <span>Available for booking</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" checked id="chapel-visible"> 
+                            <span>Show on website</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">The Meadow Pavilion</h3>
+                        <button class="btn btn-danger" onclick="confirmDeleteVenue('pavilion')">Delete Venue</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Venue Name</label>
+                        <input type="text" class="form-input" value="The Meadow Pavilion" id="pavilion-name">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Maximum Capacity</label>
+                            <input type="number" class="form-input" value="200" id="pavilion-capacity">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Base Price ($)</label>
+                            <input type="number" class="form-input" value="2000" id="pavilion-price">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Icon/Emoji</label>
+                        <input type="text" class="form-input" value="🌾" id="pavilion-icon" placeholder="e.g., 🌾, 🏕️, 🎪">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Short Description</label>
+                        <textarea class="form-textarea" id="pavilion-description">An open-air pavilion overlooking wildflower meadows, perfect for receptions under the stars. Features include a rustic dance floor, string lighting, and panoramic valley views.</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Features & Details</label>
+                        <div style="margin-bottom: 0.5rem;">
+                            <input type="text" class="form-input" value="Capacity: Up to 200 guests" style="margin-bottom: 0.5rem;">
+                            <input type="text" class="form-input" value="Features: Full bar, catering kitchen, dance floor" style="margin-bottom: 0.5rem;">
+                            <input type="text" class="form-input" value="Style: Open-air elegance with covered area">
+                        </div>
+                        <button class="btn btn-outline" onclick="addVenueDetail(this)">+ Add Detail Line</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Venue Images</label>
+                        <div class="image-upload-area" onclick="document.getElementById('pavilion-images').click()">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">📸</div>
+                            <div>Click to upload venue photos</div>
+                            <div style="font-size: 0.85rem; color: #9CA3AF; margin-top: 0.5rem;">PNG, JPG up to 5MB each</div>
+                        </div>
+                        <input type="file" id="pavilion-images" multiple accept="image/*" style="display: none;">
+                        <div class="image-preview mt-1">
+                            <div class="image-preview-item">
+                                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23F5E6D3' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='60' fill='%236B5447'%3E🌾%3C/text%3E%3C/svg%3E" alt="Pavilion">
+                                <button class="image-remove" onclick="removeImage(this)">×</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" checked id="pavilion-available"> 
+                            <span>Available for booking</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" checked id="pavilion-visible"> 
+                            <span>Show on website</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing Page -->
+            <div class="page-content hidden" id="pricing-page">
+                <div class="top-bar">
+                    <h1 class="page-title">Pricing & Packages</h1>
+                    <div class="top-bar-actions">
+                        <button class="btn btn-primary" onclick="openModal('package-modal')">+ New Package</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Package Name</th>
+                                <th>Description</th>
+                                <th>Price</th>
+                                <th>Includes</th>
+                                <th>Active</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Simple Ceremony</strong></td>
+                                <td>Chapel ceremony only</td>
+                                <td>$1,500</td>
+                                <td>Chapel, Pastor, 2 hours</td>
+                                <td>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn edit">✏️</button>
+                                        <button class="action-btn delete">🗑️</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Complete Celebration</strong></td>
+                                <td>Chapel + Reception</td>
+                                <td>$3,500</td>
+                                <td>Chapel, Pavilion, Pastor, 6 hours</td>
+                                <td>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn edit">✏️</button>
+                                        <button class="action-btn delete">🗑️</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Premium Experience</strong></td>
+                                <td>All-inclusive package</td>
+                                <td>$5,500</td>
+                                <td>All venues, Catering, Coordinator, 8 hours</td>
+                                <td>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn edit">✏️</button>
+                                        <button class="action-btn delete">🗑️</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Inquiries Page -->
+            <div class="page-content hidden" id="inquiries-page">
+                <div class="top-bar">
+                    <h1 class="page-title">Contact Inquiries</h1>
+                    <div class="top-bar-actions">
+                        <button class="btn btn-outline">Export to CSV</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Message</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Feb 2, 2026</td>
+                                <td>Jennifer Wilson</td>
+                                <td>j.wilson@email.com</td>
+                                <td>(555) 123-4567</td>
+                                <td>Interested in June dates...</td>
+                                <td><span class="badge badge-warning">New</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn">📧</button>
+                                        <button class="action-btn">👁️</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Feb 1, 2026</td>
+                                <td>Robert Taylor</td>
+                                <td>rtaylor@email.com</td>
+                                <td>(555) 987-6543</td>
+                                <td>Pricing for 175 guests...</td>
+                                <td><span class="badge badge-info">Replied</span></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn">📧</button>
+                                        <button class="action-btn">👁️</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div class="page-content hidden" id="settings-page">
+                <div class="top-bar">
+                    <h1 class="page-title">General Settings</h1>
+                    <div class="top-bar-actions">
+                        <button class="btn btn-success">Save All Settings</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="mb-2">Business Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Business Name</label>
+                            <input type="text" class="form-input" value="Cowboy Church of Maple Valley">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Venue Name</label>
+                            <input type="text" class="form-input" value="Dandelion Chapel">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tax Rate (%)</label>
+                        <input type="number" class="form-input" value="7.5" step="0.1">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="mb-2">Email Notifications</h3>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" checked> Send email on new booking
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" checked> Send email on new inquiry
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox"> Send weekly summary report
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notification Email</label>
+                        <input type="email" class="form-input" value="admin@cowboychurchmaplevalley.com">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 class="mb-2">Booking Settings</h3>
+                    <div class="form-group">
+                        <label class="form-label">Minimum Days Notice</label>
+                        <input type="number" class="form-input" value="60">
+                        <small style="color: #9CA3AF;">Minimum days required before wedding date</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Deposit Percentage (%)</label>
+                        <input type="number" class="form-input" value="30">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <input type="checkbox" checked> Require deposit to confirm booking
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testimonials Page -->
+            <div class="page-content hidden" id="testimonials-page">
+                <div class="top-bar">
+                    <h1 class="page-title">Testimonials</h1>
+                    <div class="top-bar-actions">
+                        <button class="btn btn-primary" onclick="openModal('testimonial-modal')">+ Add Testimonial</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Couple</th>
+                                <th>Rating</th>
+                                <th>Testimonial</th>
+                                <th>Date</th>
+                                <th>Visible</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Sarah & John</td>
+                                <td>⭐⭐⭐⭐⭐</td>
+                                <td>Absolutely perfect venue for our special day...</td>
+                                <td>Jan 15, 2026</td>
+                                <td>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="action-btn edit">✏️</button>
+                                        <button class="action-btn delete">🗑️</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Booking Modal -->
+    <div class="modal" id="booking-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">New Booking</h2>
+                <button class="modal-close" onclick="closeModal('booking-modal')">×</button>
+            </div>
+            <form onsubmit="saveBooking(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Bride's Name</label>
+                        <input type="text" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Groom's Name</label>
+                        <input type="text" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Wedding Date</label>
+                    <input type="date" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Venue Selection</label>
+                    <select class="form-select" required>
+                        <option>Chapel Only</option>
+                        <option>Pavilion Only</option>
+                        <option>Chapel + Pavilion</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Expected Guest Count</label>
+                    <input type="number" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Package</label>
+                    <select class="form-select">
+                        <option>Simple Ceremony</option>
+                        <option>Complete Celebration</option>
+                        <option>Premium Experience</option>
+                        <option>Custom</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Special Requests</label>
+                    <textarea class="form-textarea"></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('booking-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Booking</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Venue Modal -->
+    <div class="modal" id="add-venue-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Venue</h2>
+                <button class="modal-close" onclick="closeModal('add-venue-modal')">×</button>
+            </div>
+            <form onsubmit="addNewVenue(event)">
+                <div class="form-group">
+                    <label class="form-label">Venue Name</label>
+                    <input type="text" class="form-input" placeholder="e.g., Garden Terrace" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Maximum Capacity</label>
+                        <input type="number" class="form-input" placeholder="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Base Price ($)</label>
+                        <input type="number" class="form-input" placeholder="1000" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Icon/Emoji</label>
+                    <input type="text" class="form-input" placeholder="🌳">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-textarea" placeholder="Describe your venue..." required></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('add-venue-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Venue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const page = this.dataset.page;
+                
+                // Update active nav item
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show corresponding page
+                document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+                document.getElementById(page + '-page').classList.remove('hidden');
+            });
+        });
+
+        // Tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.dataset.tab;
+                const parent = this.closest('.card');
+                
+                // Update active tab
+                parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show corresponding content
+                parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                parent.querySelector('#' + tabId).classList.add('active');
+            });
+        });
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Close modal on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // Booking functions
+        function saveBooking(event) {
+            event.preventDefault();
+            alert('Booking created successfully!');
+            closeModal('booking-modal');
+            event.target.reset();
+        }
+
+        // Gallery functions
+        function handleGalleryUpload(event) {
+            const files = event.target.files;
+            const preview = document.getElementById('gallery-preview');
+            
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview-item';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="Gallery image">
+                        <button class="image-remove" onclick="removeImage(this)">×</button>
+                    `;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeImage(btn) {
+            btn.closest('.image-preview-item').remove();
+        }
+
+        // Save functions
+        function saveWebsiteContent() {
+            alert('Website content saved successfully!');
+        }
+
+        function saveVenueSettings() {
+            alert('Venue settings saved successfully!');
+        }
+
+        // Service management functions
+        let serviceCounter = 7;
+
+        function addService() {
+            const servicesList = document.getElementById('services-list');
+            const newService = document.createElement('div');
+            newService.className = 'form-group';
+            newService.style.cssText = 'border: 2px solid var(--border); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;';
+            newService.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h4 style="margin: 0;">Service ${serviceCounter}</h4>
+                    <button class="btn btn-danger" onclick="removeService(this)" style="padding: 0.5rem 1rem;">Remove</button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Service Title</label>
+                    <input type="text" class="form-input" placeholder="e.g., Music Services">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Service Description</label>
+                    <textarea class="form-textarea" placeholder="Describe this service..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Icon (Emoji or Symbol)</label>
+                    <input type="text" class="form-input" placeholder="e.g., 🎵, 🎶, 🎸">
+                </div>
+            `;
+            servicesList.appendChild(newService);
+            serviceCounter++;
+        }
+
+        function removeService(button) {
+            if (confirm('Are you sure you want to remove this service?')) {
+                button.closest('.form-group').remove();
+            }
+        }
+
+        // Venue management functions
+        function addVenueDetail(button) {
+            const detailsContainer = button.previousElementSibling;
+            const newInput = document.createElement('input');
+            newInput.type = 'text';
+            newInput.className = 'form-input';
+            newInput.placeholder = 'Add detail...';
+            newInput.style.marginBottom = '0.5rem';
+            detailsContainer.appendChild(newInput);
+        }
+
+        function confirmDeleteVenue(venueName) {
+            if (confirm(`Are you sure you want to delete this venue? This action cannot be undone.`)) {
+                alert(`${venueName} has been deleted.`);
+                // In a real application, this would remove the venue from the database
+            }
+        }
+
+        function addNewVenue(event) {
+            event.preventDefault();
+            alert('New venue added successfully!');
+            closeModal('add-venue-modal');
+            event.target.reset();
+        }
+
+        // Populate bookings table
+        function populateBookings() {
+            const bookings = [
+                { id: 1, couple: 'Sarah & John Smith', date: 'June 15, 2026', venue: 'Chapel + Pavilion', guests: 150, package: 'Complete Celebration', status: 'confirmed' },
+                { id: 2, couple: 'Emily & Michael Johnson', date: 'July 20, 2026', venue: 'Chapel Only', guests: 100, package: 'Simple Ceremony', status: 'pending' },
+                { id: 3, couple: 'Jessica & David Brown', date: 'August 5, 2026', venue: 'Pavilion Only', guests: 200, package: 'Premium Experience', status: 'confirmed' },
+                { id: 4, couple: 'Amanda & Chris Wilson', date: 'September 10, 2026', venue: 'Chapel + Pavilion', guests: 175, package: 'Complete Celebration', status: 'confirmed' },
+                { id: 5, couple: 'Rachel & Tom Anderson', date: 'October 1, 2026', venue: 'Chapel Only', guests: 80, package: 'Simple Ceremony', status: 'pending' }
+            ];
+
+            const tbody = document.getElementById('bookings-table-body');
+            if (tbody) {
+                tbody.innerHTML = bookings.map(b => `
+                    <tr>
+                        <td>#${b.id}</td>
+                        <td>${b.couple}</td>
+                        <td>${b.date}</td>
+                        <td>${b.venue}</td>
+                        <td>${b.guests}</td>
+                        <td>${b.package}</td>
+                        <td><span class="badge badge-${b.status === 'confirmed' ? 'success' : 'warning'}">${b.status.charAt(0).toUpperCase() + b.status.slice(1)}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn edit" title="Edit">✏️</button>
+                                <button class="action-btn" title="View">👁️</button>
+                                <button class="action-btn delete" title="Delete">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            populateBookings();
+        });
+    </script>
+</body>
+</html>
