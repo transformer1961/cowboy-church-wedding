@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Login — Cowboy Church of Maple Valley</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Pinyon+Script&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --rust:#C7745C; --gold:#C9A84C; --bark:#3D2B1A;
+  --saddle:#6B3F1F; --cream:#FDF6EC; --sage:#7A9474;
+  --bg:#0F0A06; --panel:#1A120A; --panel2:#231810;
+  --border:rgba(201,168,76,0.2); --border2:rgba(255,255,255,0.08);
+  --text:rgba(255,255,255,0.88); --text2:rgba(255,255,255,0.45);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+  overflow:hidden;
+}
+
+/* Animated background */
+.bg-layer{
+  position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 80%, rgba(107,63,31,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 20%, rgba(199,116,92,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 80% at 50% 50%, rgba(15,10,6,1) 0%, transparent 100%);
+}
+.stars{position:fixed;inset:0;z-index:0}
+.star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--d,3s) var(--del,0s) ease-in-out infinite alternate}
+@keyframes twinkle{from{opacity:0.05;transform:scale(0.8)}to{opacity:0.6;transform:scale(1.2)}}
+
+/* Card */
+.login-wrap{position:relative;z-index:10;width:100%;max-width:440px;padding:1.5rem}
+.login-card{
+  background:rgba(26,18,10,0.92);
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  backdrop-filter:blur(20px);
+  box-shadow:0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(201,168,76,0.05);
+}
+.card-top{
+  padding:2.5rem 2.5rem 2rem;
+  text-align:center;
+  border-bottom:1px solid var(--border2);
+  background:linear-gradient(180deg, rgba(107,63,31,0.15) 0%, transparent 100%);
+  position:relative;
+}
+.card-top::before{
+  content:'✦';
+  display:block;
+  font-size:1.8rem;
+  color:var(--gold);
+  margin-bottom:1rem;
+  opacity:0.7;
+  animation:pulse 3s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:0.5;transform:scale(1)}50%{opacity:0.9;transform:scale(1.05)}}
+.church-name{font-family:'Playfair Display',serif;font-size:1.55rem;color:var(--text);line-height:1.2;margin-bottom:0.35rem}
+.church-name em{color:var(--rust);font-style:italic}
+.chapel-name{font-family:'Pinyon Script',cursive;font-size:1.4rem;color:var(--gold);opacity:0.85}
+.portal-label{
+  display:inline-block;
+  margin-top:0.9rem;
+  font-size:0.62rem;
+  font-weight:700;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  color:var(--text2);
+  padding:0.3rem 1rem;
+  border:1px solid var(--border2);
+  border-radius:20px;
+}
+
+/* Form */
+.card-body{padding:2rem 2.5rem 2.5rem}
+.field{margin-bottom:1.1rem}
+.field label{
+  display:block;
+  font-size:0.68rem;
+  font-weight:700;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  color:var(--text2);
+  margin-bottom:0.45rem;
+}
+.input-wrap{position:relative}
+.input-wrap .ico{
+  position:absolute;left:0.9rem;top:50%;transform:translateY(-50%);
+  font-size:0.95rem;opacity:0.45;pointer-events:none;
+}
+.field input{
+  width:100%;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border2);
+  border-radius:8px;
+  padding:0.75rem 0.9rem 0.75rem 2.5rem;
+  font-size:0.92rem;
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  transition:all 0.2s;
+  outline:none;
+}
+.field input:focus{border-color:var(--gold);background:rgba(201,168,76,0.05);box-shadow:0 0 0 3px rgba(201,168,76,0.08)}
+.field input::placeholder{color:rgba(255,255,255,0.2)}
+.field input.error{border-color:var(--rust);background:rgba(199,116,92,0.05)}
+
+.show-pass{
+  position:absolute;right:0.9rem;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;color:var(--text2);font-size:0.85rem;
+  transition:color 0.2s;
+}
+.show-pass:hover{color:var(--text)}
+
+.error-msg{
+  display:none;
+  align-items:center;gap:0.4rem;
+  background:rgba(199,92,92,0.1);
+  border:1px solid rgba(199,92,92,0.25);
+  border-radius:6px;
+  padding:0.65rem 0.9rem;
+  font-size:0.8rem;
+  color:#E8856C;
+  margin-bottom:1rem;
+}
+.error-msg.show{display:flex}
+
+.login-btn{
+  width:100%;
+  padding:0.85rem;
+  background:linear-gradient(135deg, var(--rust) 0%, #A85E48 100%);
+  border:none;
+  border-radius:8px;
+  color:white;
+  font-size:0.92rem;
+  font-weight:700;
+  letter-spacing:0.06em;
+  font-family:'DM Sans',sans-serif;
+  cursor:pointer;
+  transition:all 0.25s;
+  position:relative;
+  overflow:hidden;
+}
+.login-btn::after{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.1),transparent);
+  opacity:0;transition:opacity 0.2s;
+}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(199,116,92,0.35)}
+.login-btn:hover::after{opacity:1}
+.login-btn:active{transform:translateY(0)}
+.login-btn.loading{opacity:0.7;pointer-events:none}
+
+.role-hint{
+  margin-top:1.5rem;
+  padding-top:1.25rem;
+  border-top:1px solid var(--border2);
+}
+.role-hint-label{font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text2);text-align:center;margin-bottom:0.75rem}
+.role-pills{display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap}
+.role-pill{
+  padding:0.3rem 0.85rem;
+  border-radius:20px;
+  font-size:0.72rem;
+  font-weight:600;
+  border:1px solid;
+  cursor:pointer;
+  transition:all 0.15s;
+  user-select:none;
+}
+.role-pill[data-role="sentinel"]{border-color:rgba(201,168,76,0.4);color:var(--gold);background:rgba(201,168,76,0.06)}
+.role-pill[data-role="sentinel"]:hover{background:rgba(201,168,76,0.12)}
+.role-pill[data-role="pastor"]{border-color:rgba(122,148,116,0.4);color:#9DC49A;background:rgba(122,148,116,0.06)}
+.role-pill[data-role="pastor"]:hover{background:rgba(122,148,116,0.12)}
+.role-pill[data-role="mom"]{border-color:rgba(199,116,92,0.4);color:#E8A090;background:rgba(199,116,92,0.06)}
+.role-pill[data-role="mom"]:hover{background:rgba(199,116,92,0.12)}
+
+.back-link{
+  display:block;text-align:center;margin-top:1.5rem;
+  font-size:0.78rem;color:var(--text2);text-decoration:none;
+  transition:color 0.2s;
+}
+.back-link:hover{color:var(--text)}
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<div class="stars" id="stars"></div>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="card-top">
+      <div class="church-name">Cowboy <em>Church</em><br>of Maple Valley</div>
+      <div class="chapel-name">at Dandelion Chapel</div>
+      <div class="portal-label">Staff Portal</div>
+    </div>
+    <div class="card-body">
+      <div class="error-msg" id="error-msg">
+        <span>⚠️</span> <span id="error-text">Incorrect username or password.</span>
+      </div>
+
+      <div class="field">
+        <label>Username</label>
+        <div class="input-wrap">
+          <span class="ico">👤</span>
+          <input type="text" id="username" placeholder="Enter your username" autocomplete="username" onkeydown="if(event.key==='Enter')tryLogin()">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <div class="input-wrap">
+          <span class="ico">🔒</span>
+          <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')tryLogin()">
+          <button class="show-pass" onclick="togglePass()" id="show-pass-btn" title="Show password">👁️</button>
+        </div>
+      </div>
+
+      <button class="login-btn" id="login-btn" onclick="tryLogin()">Sign In to Dashboard</button>
+
+      <div class="role-hint">
+        <div class="role-hint-label">Sign in as</div>
+        <div class="role-pills">
+          <div class="role-pill" data-role="sentinel" onclick="quickFill('sentinel')">⚡ Sentinel</div>
+          <div class="role-pill" data-role="pastor" onclick="quickFill('pastor')">✝️ Pastor</div>
+          <div class="role-pill" data-role="mom" onclick="quickFill('mom')">💍 Wedding Planner</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <a href="index.html" class="back-link">← Return to Church Website</a>
+</div>
+
+<script>
+// ── STARS
+const starsEl=document.getElementById('stars');
+for(let i=0;i<80;i++){
+  const s=document.createElement('div');
+  s.className='star';
+  const size=Math.random()*2.5+0.5;
+  s.style.cssText=`width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--del:${Math.random()*4}s`;
+  starsEl.appendChild(s);
+}
+
+// ── USERS (stored in localStorage, editable from admin panel)
+function getUsers(){
+  const stored = localStorage.getItem('cc_users');
+  if(stored) return JSON.parse(stored);
+  // Default credentials — admin can change these
+  const defaults = [
+    {id:1, username:'sentinel', password:'Cowboy2026!', role:'sentinel', name:'Sentinel', title:'Founder & Chief System Architect', email:'sentinel@cowboychurchmaplevalley.com', avatar:'S', color:'#C9A84C'},
+    {id:2, username:'pastor',   password:'Pastor2026!', role:'pastor',   name:'Pastor',   title:'Pastor',                          email:'pastor@cowboychurchmaplevalley.com',   avatar:'P', color:'#7A9474'},
+    {id:3, username:'mom',      password:'Wedding2026!',role:'mom',      name:'Mom',      title:'Wedding Planner',                  email:'mom@cowboychurchmaplevalley.com',      avatar:'M', color:'#C7745C'}
+  ];
+  localStorage.setItem('cc_users', JSON.stringify(defaults));
+  return defaults;
+}
+
+function tryLogin(){
+  const uEl=document.getElementById('username');
+  const pEl=document.getElementById('password');
+  const btn=document.getElementById('login-btn');
+  const err=document.getElementById('error-msg');
+  const u=uEl.value.trim().toLowerCase();
+  const p=pEl.value;
+
+  uEl.classList.remove('error');
+  pEl.classList.remove('error');
+  err.classList.remove('show');
+
+  if(!u||!p){
+    document.getElementById('error-text').textContent='Please enter your username and password.';
+    err.classList.add('show');
+    if(!u)uEl.classList.add('error');
+    if(!p)pEl.classList.add('error');
+    return;
+  }
+
+  btn.classList.add('loading');
+  btn.textContent='Signing in…';
+
+  setTimeout(()=>{
+    const users=getUsers();
+    const match=users.find(x=>x.username.toLowerCase()===u && x.password===p);
+    if(match){
+      // Save session
+      sessionStorage.setItem('cc_session', JSON.stringify({
+        id:match.id, username:match.username, role:match.role,
+        name:match.name, title:match.title, email:match.email,
+        avatar:match.avatar, color:match.color, loginTime:Date.now()
+      }));
+      window.location.href='admin.html';
+    } else {
+      btn.classList.remove('loading');
+      btn.textContent='Sign In to Dashboard';
+      pEl.value='';
+      pEl.classList.add('error');
+      uEl.classList.add('error');
+      document.getElementById('error-text').textContent='Incorrect username or password. Try again.';
+      err.classList.add('show');
+      // shake
+      document.querySelector('.login-card').animate([
+        {transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},
+        {transform:'translateX(-5px)'},{transform:'translateX(5px)'},{transform:'translateX(0)'}
+      ],{duration:350,easing:'ease-out'});
+    }
+  },600);
+}
+
+function togglePass(){
+  const p=document.getElementById('password');
+  p.type=p.type==='password'?'text':'password';
+  document.getElementById('show-pass-btn').textContent=p.type==='password'?'👁️':'🙈';
+}
+
+function quickFill(role){
+  const users=getUsers();
+  const u=users.find(x=>x.role===role);
+  if(u){
+    document.getElementById('username').value=u.username;
+    // For security, do not auto-fill the password — require the user to type it.
+    document.getElementById('password').value='';
+    document.getElementById('password').focus();
+  } else {
+    document.getElementById('username').focus();
+  }
+}
+
+// If already logged in, redirect to admin
+if(sessionStorage.getItem('cc_session')) window.location.href='admin.html';
+</script>
+</body>
+</html>

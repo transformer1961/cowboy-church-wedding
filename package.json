@@ -1,0 +1,24 @@
+{
+  "name": "cowboychurchofmaplevalleyindandelionchapel",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/transformer1961/cowboy-church-wedding.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/transformer1961/cowboy-church-wedding/issues"
+  },
+  "homepage": "https://github.com/transformer1961/cowboy-church-wedding#readme",
+  "devDependencies": {
+    "netlify-cli": "^26.1.0"
+  }
+}
