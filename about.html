@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; upgrade-insecure-requests" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <title>About - Cowboy Church of Maple Valley</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Rye&family=Source+Serif+4:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #21170f;
+      --bg-panel: #2d2117;
+      --bg-panel-raised: #3a2a1d;
+      --line: #5b432f;
+      --line-bright: #8b6848;
+      --text: #fff7e8;
+      --text-dim: #d8c5a7;
+      --text-faint: #a98d68;
+      --cyan: #d49a50;
+      --cyan-dim: #7c5632;
+      --amber: #f0c27a;
+      --red: #b85c38;
+      --display: 'Rye', Georgia, serif;
+      --body: 'Source Serif 4', Georgia, serif;
+      --mono: 'Inter', sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background:
+        linear-gradient(rgba(33, 23, 15, 0.9), rgba(33, 23, 15, 0.9)),
+        repeating-linear-gradient(90deg, #251a12 0 18px, #2b1f16 18px 36px);
+      color: var(--text);
+      font-family: var(--body);
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    ul {
+      list-style: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      background: var(--cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--cyan);
+      flex-shrink: 0;
+    }
+
+    /* ---------- NAV ---------- */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(9, 13, 18, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 32px;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .logo {
+      font-family: var(--mono);
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo .mark {
+      width: 20px;
+      height: 20px;
+      border: 1.5px solid var(--cyan);
+      border-radius: 50%;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .logo .mark::before {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      background: var(--cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 10px 2px var(--cyan);
+    }
+
+    .logo b {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .logo span {
+      color: var(--text-faint);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text-dim);
+      letter-spacing: 0.03em;
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--cyan);
+    }
+
+    .status-pill {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+      border: 1px solid var(--cyan-dim);
+      background: rgba(79, 209, 197, 0.06);
+      padding: 6px 12px;
+      border-radius: 100px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+
+    .status-pill .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 6px var(--cyan);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.35;
+      }
+    }
+
+    .nav-cta {
+      display: none;
+    }
+
+    @media (min-width: 720px) {
+      .nav-cta {
+        display: flex;
+      }
+    }
+
+    .nav-links-mobile-hide {
+      display: flex;
+    }
+
+    @media (max-width: 900px) {
+      .nav-links {
+        display: none;
+      }
+    }
+
+    /* ---------- HERO ---------- */
+    .hero {
+      position: relative;
+      padding: 180px 0 120px;
+      background:
+        radial-gradient(ellipse 900px 600px at 78% 20%, rgba(79, 209, 197, 0.08), transparent 60%),
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: auto, 48px 48px, 48px 48px;
+      background-position: 0 0, -1px -1px, -1px -1px;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 1000px 700px at 50% 0%, transparent 30%, var(--bg) 85%);
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    @media (max-width: 900px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding: 150px 0 80px;
+      }
+    }
+
+    .hero h1 {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: clamp(38px, 5.4vw, 64px);
+      line-height: 1.04;
+      letter-spacing: -0.01em;
+      margin: 22px 0 24px;
+      color: #F2F6F8;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--cyan);
+    }
+
+    .hero p.lead {
+      font-size: 17px;
+      color: var(--text-dim);
+      max-width: 480px;
+      margin-bottom: 38px;
+    }
+
+    .cta-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 0.03em;
+      padding: 14px 24px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: var(--cyan);
+      color: #06201D;
+      font-weight: 500;
+    }
+
+    .btn-primary:hover {
+      background: #6FE0D5;
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      border-color: var(--line-bright);
+      color: var(--text);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    /* ---------- RADAR SIGNATURE ---------- */
+    .radar-wrap {
+      position: relative;
+      aspect-ratio: 1;
+      width: 100%;
+      max-width: 440px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .radar-ring {
+      position: absolute;
+      border: 1px solid var(--line-bright);
+      border-radius: 50%;
+    }
+
+    .r1 {
+      width: 100%;
+      height: 100%;
+    }
+
+    .r2 {
+      width: 74%;
+      height: 74%;
+    }
+
+    .r3 {
+      width: 48%;
+      height: 48%;
+    }
+
+    .r4 {
+      width: 22%;
+      height: 22%;
+      border-color: var(--cyan-dim);
+    }
+
+    .radar-cross {
+      position: absolute;
+      background: var(--line);
+    }
+
+    .radar-cross.h {
+      width: 100%;
+      height: 1px;
+    }
+
+    .radar-cross.v {
+      width: 1px;
+      height: 100%;
+    }
+
+    .radar-sweep {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, rgba(79, 209, 197, 0.32), transparent 24%);
+      animation: sweep 5s linear infinite;
+      mask-image: radial-gradient(circle, black 60%, transparent 100%);
+    }
+
+    @keyframes sweep {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .radar-node {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .radar-node .blip {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 0 0 rgba(79, 209, 197, 0.6);
+      animation: blip-ping 2.6s ease-out infinite;
+    }
+
+    .radar-node .lbl {
+      font-family: var(--mono);
+      font-size: 10.5px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      background: rgba(9, 13, 18, 0.7);
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+
+    @keyframes blip-ping {
+      0% {
+        box-shadow: 0 0 0 0 rgba(79, 209, 197, 0.5);
+      }
+
+      70% {
+        box-shadow: 0 0 0 10px rgba(79, 209, 197, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(79, 209, 197, 0);
+      }
+    }
+
+    .n1 {
+      top: 6%;
+      left: 52%;
+    }
+
+    .n2 {
+      top: 32%;
+      left: 82%;
+      flex-direction: row-reverse;
+    }
+
+    .n3 {
+      top: 68%;
+      left: 78%;
+      flex-direction: row-reverse;
+    }
+
+    .n4 {
+      top: 86%;
+      left: 38%;
+    }
+
+    .n5 {
+      top: 60%;
+      left: 6%;
+    }
+
+    .n6 {
+      top: 22%;
+      left: 12%;
+    }
+
+    .radar-node:nth-child(6) .blip {
+      animation-delay: 0.4s;
+    }
+
+    .radar-node:nth-child(7) .blip {
+      animation-delay: 0.9s;
+    }
+
+    .radar-node:nth-child(8) .blip {
+      animation-delay: 1.3s;
+    }
+
+    .radar-node:nth-child(9) .blip {
+      animation-delay: 1.8s;
+    }
+
+    .radar-node:nth-child(10) .blip {
+      animation-delay: 0.2s;
+    }
+
+    .radar-center {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 16px 4px rgba(79, 209, 197, 0.7);
+    }
+
+    /* ---------- SECTION SHARED ---------- */
+    section {
+      padding: 96px 0;
+      position: relative;
+    }
+
+    .section-head {
+      max-width: 600px;
+      margin-bottom: 56px;
+    }
+
+    .section-head h2 {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: clamp(28px, 3.4vw, 38px);
+      margin-top: 16px;
+      color: #F2F6F8;
+      letter-spacing: -0.01em;
+    }
+
+    .section-head p {
+      color: var(--text-dim);
+      margin-top: 14px;
+      font-size: 15.5px;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid var(--line);
+    }
+
+    /* ---------- SERVICES ---------- */
+    .services {
+      background: var(--bg-panel);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .service-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+
+    @media (max-width:860px) {
+      .service-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width:560px) {
+      .service-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .service-card {
+      background: var(--bg-panel);
+      padding: 32px 28px;
+      transition: background 0.25s ease;
+    }
+
+    .service-card:hover {
+      background: var(--bg-panel-raised);
+    }
+
+    .service-card .tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-faint);
+      letter-spacing: 0.08em;
+      margin-bottom: 18px;
+      display: block;
+    }
+
+    .service-card h3 {
+      font-family: var(--display);
+      font-size: 19px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #F2F6F8;
+    }
+
+    .service-card p {
+      color: var(--text-dim);
+      font-size: 14.5px;
+    }
+
+    .signal {
+      display: flex;
+      gap: 3px;
+      margin-top: 20px;
+    }
+
+    .signal i {
+      width: 4px;
+      background: var(--line-bright);
+      border-radius: 1px;
+      display: block;
+    }
+
+    .signal i:nth-child(1) {
+      height: 8px;
+    }
+
+    .signal i:nth-child(2) {
+      height: 12px;
+    }
+
+    .signal i:nth-child(3) {
+      height: 16px;
+    }
+
+    .signal i:nth-child(4) {
+      height: 20px;
+    }
+
+    .signal.active i {
+      background: var(--cyan);
+    }
+
+    /* ---------- PROCESS ---------- */
+    .process-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .process-item {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 28px;
+      padding: 32px 0;
+      border-top: 1px solid var(--line);
+      align-items: start;
+    }
+
+    .process-item:last-child {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .process-num {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--cyan);
+      padding-top: 4px;
+    }
+
+    .process-item h3 {
+      font-family: var(--display);
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #F2F6F8;
+    }
+
+    .process-item p {
+      color: var(--text-dim);
+      font-size: 15px;
+      max-width: 560px;
+    }
+
+    /* ---------- TRUST STRIP ---------- */
+    .trust-strip {
+      background: var(--bg-panel);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .trust-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      text-align: center;
+      padding: 56px 0;
+    }
+
+    @media (max-width:760px) {
+      .trust-grid {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+    }
+
+    .trust-grid div .badge {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--cyan);
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .trust-grid div p {
+      font-family: var(--display);
+      font-size: 17px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* ---------- CONTACT / FOOTER CTA ---------- */
+    .cta-band {
+      text-align: center;
+      padding: 120px 0;
+    }
+
+    .cta-band h2 {
+      font-family: var(--display);
+      font-size: clamp(30px, 4.2vw, 48px);
+      font-weight: 600;
+      color: #F2F6F8;
+      max-width: 680px;
+      margin: 0 auto 20px;
+      letter-spacing: -0.01em;
+    }
+
+    .cta-band p {
+      color: var(--text-dim);
+      margin-bottom: 36px;
+    }
+
+    .cta-band .cta-row {
+      justify-content: center;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 48px 0 32px;
+    }
+
+    .footer-top {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 32px;
+      margin-bottom: 40px;
+    }
+
+    .footer-cols {
+      display: flex;
+      gap: 64px;
+      flex-wrap: wrap;
+    }
+
+    .footer-col h4 {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-faint);
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
+    }
+
+    .footer-col a {
+      display: block;
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-bottom: 10px;
+      transition: color 0.2s ease;
+    }
+
+    .footer-col a:hover {
+      color: var(--cyan);
+    }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-faint);
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+
+    /* ---------- PAGE HEADER (About / Pricing / Contact) ---------- */
+    .page-hero {
+      padding: 170px 0 80px;
+      background:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 48px 48px;
+      background-position: -1px -1px;
+      position: relative;
+    }
+
+    .page-hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 900px 500px at 50% 0%, transparent 30%, var(--bg) 85%);
+      pointer-events: none;
+    }
+
+    .page-hero .inner {
+      position: relative;
+      z-index: 2;
+      max-width: 720px;
+    }
+
+    .page-hero h1 {
+      font-family: var(--display);
+      font-weight: 600;
+      font-size: clamp(34px, 4.6vw, 52px);
+      line-height: 1.08;
+      letter-spacing: -0.01em;
+      margin: 18px 0 16px;
+      color: #F2F6F8;
+    }
+
+    .page-hero p.lead {
+      font-size: 16.5px;
+      color: var(--text-dim);
+      max-width: 600px;
+    }
+
+    /* ---------- ABOUT PAGE ---------- */
+    .about-block {
+      padding: 80px 0;
+    }
+
+    .about-block+.about-block {
+      border-top: 1px solid var(--line);
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 60px;
+      align-items: start;
+    }
+
+    @media (max-width:860px) {
+      .about-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .about-grid h2 {
+      font-family: var(--display);
+      font-size: clamp(24px, 3vw, 32px);
+      font-weight: 600;
+      color: #F2F6F8;
+      margin-bottom: 18px;
+    }
+
+    .about-grid p {
+      color: var(--text-dim);
+      font-size: 15.5px;
+      margin-bottom: 14px;
+    }
+
+    .value-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .value-item {
+      padding: 22px 0;
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 16px;
+    }
+
+    .value-item:last-child {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .value-item .dot-mark {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      margin-top: 7px;
+    }
+
+    .value-item h4 {
+      font-family: var(--display);
+      font-size: 16px;
+      font-weight: 600;
+      color: #F2F6F8;
+      margin-bottom: 4px;
+    }
+
+    .value-item p {
+      color: var(--text-dim);
+      font-size: 14.5px;
+      margin: 0;
+    }
+
+    /* ---------- PRICING PAGE ---------- */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+    }
+
+    @media (max-width:900px) {
+      .pricing-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .price-card {
+      background: var(--bg-panel);
+      padding: 36px 30px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .price-card.featured {
+      background: var(--bg-panel-raised);
+      position: relative;
+    }
+
+    .price-card.featured::before {
+      content: "MOST COMMON";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: #06201D;
+      background: var(--cyan);
+      padding: 6px 0;
+    }
+
+    .price-card.featured {
+      padding-top: 66px;
+    }
+
+    .price-card .tier-name {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+      margin-bottom: 14px;
+    }
+
+    .price-card .tier-price {
+      font-family: var(--display);
+      font-size: 34px;
+      font-weight: 600;
+      color: #F2F6F8;
+      margin-bottom: 6px;
+    }
+
+    .price-card .tier-price span {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+
+    .price-card .tier-desc {
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .price-card ul {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 28px;
+      flex-grow: 1;
+    }
+
+    .price-card li {
+      font-size: 14px;
+      color: var(--text);
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .price-card li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--cyan);
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .price-card .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .pricing-note {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--text-faint);
+      text-align: center;
+      margin-top: 28px;
+    }
+
+    /* ---------- CONTACT PAGE ---------- */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: start;
+    }
+
+    @media (max-width:860px) {
+      .contact-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .form-field label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      width: 100%;
+      background: var(--bg-panel);
+      border: 1px solid var(--line-bright);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--body);
+      font-size: 14.5px;
+      padding: 12px 14px;
+    }
+
+    .form-field textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .form-field input:focus,
+    .form-field select:focus,
+    .form-field textarea:focus {
+      outline: none;
+      border-color: var(--cyan);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    @media (max-width:520px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-note {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-faint);
+      margin-top: 4px;
+    }
+
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .info-item {
+      padding: 22px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .info-item:last-child {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .info-item .tag {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: var(--text-faint);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .info-item a,
+    .info-item p {
+      font-family: var(--display);
+      font-size: 17px;
+      color: #F2F6F8;
+      font-weight: 500;
+    }
+
+    .info-item a:hover {
+      color: var(--cyan);
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <header>
+    <nav class="wrap" style="padding-left:0;padding-right:0;">
+      <a href="index.html" class="logo">
+        <span class="mark"></span>
+        <b>COWBOY CHURCH</b><span>OF MAPLE VALLEY</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html#services">Worship</a></li>
+        <li><a href="pricing.html">Visit</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+      <div class="nav-cta status-pill">
+        <span class="dot"></span><span data-role="status-text">SUNDAY WORSHIP 11:00 A.M.</span>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+
+    <section class="page-hero">
+      <div class="wrap inner">
+        <div class="eyebrow">OUR STORY</div>
+        <h1 id="aboutHeroTitle">A country church with open arms.</h1>
+        <p id="aboutHeroLead" class="lead">Cowboy Church of Maple Valley is a non-denominational, Bible-based church
+          where everyone is welcome.</p>
+      </div>
+    </section>
+
+    <section class="about-block">
+      <div class="wrap about-grid">
+        <div>
+          <h2 id="aboutSection1Heading">Founded with willing hearts</h2>
+          <p id="aboutSection1Text1">Cowboy Church of Maple Valley was founded by Bruce and Heather Deur. For many
+            years, Bruce faithfully shared God's Word with friends, while Heather serves by teaching Sunday school and
+            encouraging families in their faith.</p>
+          <p id="aboutSection1Text2">Together, they have always found some of God's greatest blessings while riding
+            horses and enjoying His creation.</p>
+        </div>
+        <div>
+          <h2 id="aboutSection2Heading">Answering God's call</h2>
+          <p id="aboutSection2Text1">When God opened the door for this ministry, Bruce and Heather answered His call.
+            Today, they are honored to serve Maple Valley and the surrounding communities.</p>
+          <p id="aboutSection2Text2">Their heart is to share the hope, love, and truth of Jesus Christ with anyone who
+            walks through the doors.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="about-block">
+      <div class="wrap">
+        <div class="section-head" style="margin-bottom:32px;">
+          <div class="eyebrow">WHAT MATTERS HERE</div>
+          <h2>Faith, family, and a welcome that feels like home.</h2>
+        </div>
+        <div class="value-list">
+          <div class="value-item">
+            <span class="dot-mark"></span>
+            <div>
+              <h4>Bible-based faith</h4>
+              <p>We grow together in God's Word and seek to keep Christ at the center.</p>
+            </div>
+          </div>
+          <div class="value-item">
+            <span class="dot-mark"></span>
+            <div>
+              <h4>Come-as-you-are welcome</h4>
+              <p>Whether you have attended church your whole life or are simply curious, there is a place for you here.
+              </p>
+            </div>
+          </div>
+          <div class="value-item">
+            <span class="dot-mark"></span>
+            <div>
+              <h4>Encouraging families</h4>
+              <p>Sunday school and family encouragement are part of the heart of this ministry.</p>
+            </div>
+          </div>
+          <div class="value-item">
+            <span class="dot-mark"></span>
+            <div>
+              <h4>Serving Maple Valley</h4>
+              <p>We are honored to serve Coral, Maple Valley, and the surrounding communities.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-band">
+      <div class="wrap">
+        <div class="eyebrow" style="justify-content:center;">YOU ARE WELCOME</div>
+        <h2 id="aboutCtaHeading">Come worship with us.</h2>
+        <p id="aboutCtaText">Sunday worship begins at 11:00 a.m. in Coral, Michigan.</p>
+        <div class="cta-row">
+          <a href="pricing.html" id="aboutCtaButton" class="btn btn-primary">Plan your visit</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="footer-top">
+        <a href="index.html" class="logo">
+          <span class="mark"></span>
+          <b>COWBOY CHURCH</b><span>OF MAPLE VALLEY</span>
+        </a>
+        <div class="footer-cols">
+          <div class="footer-col">
+            <h4>WORSHIP</h4>
+            <a href="index.html#services">Sunday Service</a>
+            <a href="pricing.html">Plan a Visit</a>
+            <a href="about.html">Our Story</a>
+          </div>
+          <div class="footer-col">
+            <h4>CHURCH</h4>
+            <a href="pricing.html">Visit</a>
+            <a href="about.html">About</a>
+            <a href="contact.html">Contact</a>
+          </div>
+          <div class="footer-col">
+            <h4>CONNECT</h4>
+            <a href="contact.html">Contact</a>
+            <a href="terms.html">Terms</a>
+            <a href="pricing.html">Coral, Michigan</a>
+            <a href="admin.html">Admin</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 COWBOY CHURCH OF MAPLE VALLEY</span>
+        <span data-role="status-text">SUNDAY WORSHIP 11:00 A.M.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = 'sentinelAdminData';
+      let cachedData = {};
+      async function loadData() {
+        try {
+          const response = await fetch('/api/content');
+          if (!response.ok) throw new Error('Fetch failed');
+          const remoteData = await response.json();
+          if (remoteData && typeof remoteData === 'object') {
+            cachedData = remoteData;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(remoteData));
+            return remoteData;
+          }
+        } catch (error) {
+          try { cachedData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch (localError) { cachedData = {}; }
+        }
+        return cachedData;
+      }
+      function apply() {
+        const data = cachedData;
+        const statusText = data.statusText || 'SUNDAY WORSHIP 11:00 A.M.';
+        document.querySelectorAll('[data-role="status-text"]').forEach(function (el) {
+          el.textContent = statusText;
+        });
+        const contactEmail = data.contactEmail || '';
+        const emailLink = document.querySelector('a[href^="mailto:"]');
+        if (emailLink) {
+          emailLink.href = 'mailto:' + contactEmail;
+          if (emailLink.textContent.includes('@')) emailLink.textContent = contactEmail;
+        }
+        const aboutHeroTitle = document.getElementById('aboutHeroTitle');
+        if (aboutHeroTitle) aboutHeroTitle.textContent = data.aboutHeroTitle || aboutHeroTitle.textContent;
+        const aboutHeroLead = document.getElementById('aboutHeroLead');
+        if (aboutHeroLead) aboutHeroLead.textContent = data.aboutHeroLead || aboutHeroLead.textContent;
+        const aboutSection1Heading = document.getElementById('aboutSection1Heading');
+        if (aboutSection1Heading) aboutSection1Heading.textContent = data.aboutSection1Heading || aboutSection1Heading.textContent;
+        const aboutSection1Text1 = document.getElementById('aboutSection1Text1');
+        if (aboutSection1Text1) aboutSection1Text1.textContent = data.aboutSection1Text1 || aboutSection1Text1.textContent;
+        const aboutSection1Text2 = document.getElementById('aboutSection1Text2');
+        if (aboutSection1Text2) aboutSection1Text2.textContent = data.aboutSection1Text2 || aboutSection1Text2.textContent;
+        const aboutSection2Heading = document.getElementById('aboutSection2Heading');
+        if (aboutSection2Heading) aboutSection2Heading.textContent = data.aboutSection2Heading || aboutSection2Heading.textContent;
+        const aboutSection2Text1 = document.getElementById('aboutSection2Text1');
+        if (aboutSection2Text1) aboutSection2Text1.textContent = data.aboutSection2Text1 || aboutSection2Text1.textContent;
+        const aboutSection2Text2 = document.getElementById('aboutSection2Text2');
+        if (aboutSection2Text2) aboutSection2Text2.textContent = data.aboutSection2Text2 || aboutSection2Text2.textContent;
+        const aboutCtaHeading = document.getElementById('aboutCtaHeading');
+        if (aboutCtaHeading) aboutCtaHeading.textContent = data.aboutCtaHeading || aboutCtaHeading.textContent;
+        const aboutCtaText = document.getElementById('aboutCtaText');
+        if (aboutCtaText) aboutCtaText.textContent = data.aboutCtaText || aboutCtaText.textContent;
+        const aboutCtaButton = document.getElementById('aboutCtaButton');
+        if (aboutCtaButton) aboutCtaButton.textContent = data.aboutCtaButton || aboutCtaButton.textContent;
+      }
+      apply();
+
+    })();
+  </script>
+</body>
+
+</html>
