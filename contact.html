@@ -1385,7 +1385,7 @@
         let cachedData = {};
         async function loadData() {
           try {
-            const response = await fetch('/api/content');
+            const response = await fetch('/.netlify/functions/content');
             if (!response.ok) throw new Error('Fetch failed');
             const remoteData = await response.json();
             if (remoteData && typeof remoteData === 'object') {

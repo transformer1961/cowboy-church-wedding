@@ -253,26 +253,23 @@ for(let i=0;i<80;i++){
   starsEl.appendChild(s);
 }
 
-// ── USERS (stored in localStorage, editable from admin panel)
-function getUsers(){
-  const stored = localStorage.getItem('cc_users');
-  if(stored) return JSON.parse(stored);
-  // Default credentials — admin can change these
-  const defaults = [
-    {id:1, username:'sentinel', password:'Cowboy2026!', role:'sentinel', name:'Sentinel', title:'Founder & Chief System Architect', email:'sentinel@cowboychurchmaplevalley.com', avatar:'S', color:'#C9A84C'},
-    {id:2, username:'pastor',   password:'Pastor2026!', role:'pastor',   name:'Pastor',   title:'Pastor',                          email:'pastor@cowboychurchmaplevalley.com',   avatar:'P', color:'#7A9474'},
-    {id:3, username:'mom',      password:'Wedding2026!',role:'mom',      name:'Mom',      title:'Wedding Planner',                  email:'mom@cowboychurchmaplevalley.com',      avatar:'M', color:'#C7745C'}
-  ];
-  localStorage.setItem('cc_users', JSON.stringify(defaults));
-  return defaults;
-}
+// ── AUTH
+// Credentials are verified server-side against MongoDB Atlas by
+// netlify/functions/login.js, which sets an httpOnly session cookie on
+// success. Nothing here ever sees a password hash or another user's
+// password, and there is nothing left in this file for someone to read
+// via "view source" to get into the dashboard.
 
-function tryLogin(){
+// Usernames only (not sensitive) so the role pills can still quick-fill
+// the username field for convenience.
+const ROLE_USERNAMES = { sentinel: 'sentinel', pastor: 'pastor', mom: 'mom' };
+
+async function tryLogin(){
   const uEl=document.getElementById('username');
   const pEl=document.getElementById('password');
   const btn=document.getElementById('login-btn');
   const err=document.getElementById('error-msg');
-  const u=uEl.value.trim().toLowerCase();
+  const u=uEl.value.trim();
   const p=pEl.value;
 
   uEl.classList.remove('error');
@@ -290,32 +287,37 @@ function tryLogin(){
   btn.classList.add('loading');
   btn.textContent='Signing in…';
 
-  setTimeout(()=>{
-    const users=getUsers();
-    const match=users.find(x=>x.username.toLowerCase()===u && x.password===p);
-    if(match){
-      // Save session
-      sessionStorage.setItem('cc_session', JSON.stringify({
-        id:match.id, username:match.username, role:match.role,
-        name:match.name, title:match.title, email:match.email,
-        avatar:match.avatar, color:match.color, loginTime:Date.now()
-      }));
+  try{
+    const res = await fetch('/.netlify/functions/login', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p }),
+    });
+
+    if(res.ok){
       window.location.href='admin.html';
-    } else {
-      btn.classList.remove('loading');
-      btn.textContent='Sign In to Dashboard';
-      pEl.value='';
-      pEl.classList.add('error');
-      uEl.classList.add('error');
-      document.getElementById('error-text').textContent='Incorrect username or password. Try again.';
-      err.classList.add('show');
-      // shake
-      document.querySelector('.login-card').animate([
-        {transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},
-        {transform:'translateX(-5px)'},{transform:'translateX(5px)'},{transform:'translateX(0)'}
-      ],{duration:350,easing:'ease-out'});
+      return;
     }
-  },600);
+
+    const data = await res.json().catch(()=>({}));
+    btn.classList.remove('loading');
+    btn.textContent='Sign In to Dashboard';
+    pEl.value='';
+    pEl.classList.add('error');
+    uEl.classList.add('error');
+    document.getElementById('error-text').textContent = data.error || 'Incorrect username or password. Try again.';
+    err.classList.add('show');
+    document.querySelector('.login-card').animate([
+      {transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},
+      {transform:'translateX(-5px)'},{transform:'translateX(5px)'},{transform:'translateX(0)'}
+    ],{duration:350,easing:'ease-out'});
+  } catch(networkErr){
+    btn.classList.remove('loading');
+    btn.textContent='Sign In to Dashboard';
+    document.getElementById('error-text').textContent='Network error — please check your connection and try again.';
+    err.classList.add('show');
+  }
 }
 
 function togglePass(){
@@ -325,20 +327,21 @@ function togglePass(){
 }
 
 function quickFill(role){
-  const users=getUsers();
-  const u=users.find(x=>x.role===role);
-  if(u){
-    document.getElementById('username').value=u.username;
-    // For security, do not auto-fill the password — require the user to type it.
-    document.getElementById('password').value='';
-    document.getElementById('password').focus();
-  } else {
-    document.getElementById('username').focus();
-  }
+  const username = ROLE_USERNAMES[role];
+  document.getElementById('username').value = username || '';
+  // Never auto-fill the password — it always has to be typed.
+  document.getElementById('password').value='';
+  document.getElementById('password').focus();
 }
 
-// If already logged in, redirect to admin
-if(sessionStorage.getItem('cc_session')) window.location.href='admin.html';
+// If already logged in, the server will confirm via the cookie and this
+// page redirects straight to the dashboard.
+(async function checkExistingSession(){
+  try{
+    const res = await fetch('/.netlify/functions/verify', { credentials: 'include' });
+    if(res.ok) window.location.href='admin.html';
+  } catch { /* not logged in / offline — stay on login page */ }
+})();
 </script>
 </body>
 </html>

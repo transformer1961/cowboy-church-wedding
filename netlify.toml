@@ -3,6 +3,14 @@
   publish = "."
   functions = "netlify/functions"
 
+[functions]
+  node_bundler = "esbuild"
+  # mongodb's driver has several optional native/peer dependencies
+  # (kerberos, aws-sdk client, etc.) that aren't installed and don't
+  # need to be — this tells esbuild to leave `require("mongodb")` alone
+  # instead of trying to statically bundle it.
+  external_node_modules = ["mongodb"]
+
 [[redirects]]
   from = "/admin"
   to = "/admin.html"

@@ -1041,9 +1041,9 @@ tbody tr:last-child td{border-bottom:none}
     </div>
   </div>
 
-
+<script>
 // ═══════════════════════════════════════════════
-// DATA STORE — localStorage backed
+// DATA STORE — localStorage backed, synced with MongoDB Atlas
 // ═══════════════════════════════════════════════
 const KEYS = {
   hero:'cc_hero', about:'cc_about', venues:'cc_venues', services:'cc_services',
@@ -1054,7 +1054,34 @@ const KEYS = {
 };
 
 function load(key){try{return JSON.parse(localStorage.getItem(KEYS[key]))||null}catch{return null}}
-function save(key,data){localStorage.setItem(KEYS[key],JSON.stringify(data))}
+function save(key,data){
+  localStorage.setItem(KEYS[key],JSON.stringify(data));
+  // Persist to MongoDB Atlas in the background so edits are visible to
+  // every visitor/browser, not just this one. localStorage above still
+  // makes reads instant and keeps the UI working offline.
+  fetch('/.netlify/functions/content', {
+    method:'PUT', credentials:'include',
+    headers:{'content-type':'application/json'},
+    body: JSON.stringify({ key, data }),
+  }).catch(()=>{ /* offline — local copy is still saved; will retry next save */ });
+}
+
+// Pulls the latest content from MongoDB into the local cache. Called once
+// on dashboard load so a change made in one browser (or by another staff
+// member) shows up here too, instead of only ever reading stale
+// localStorage from whenever this browser last visited.
+async function syncContentFromServer(){
+  try{
+    const res = await fetch('/.netlify/functions/content', { credentials:'include' });
+    if(!res.ok) return;
+    const remote = await res.json();
+    Object.keys(KEYS).forEach(key=>{
+      if(remote[key] !== undefined){
+        localStorage.setItem(KEYS[key], JSON.stringify(remote[key]));
+      }
+    });
+  } catch { /* offline — fall back to whatever is already cached locally */ }
+}
 
 // ── DEFAULTS
 const DEFAULTS = {
@@ -1861,33 +1888,33 @@ const ROLE_SHORTCUTS = {
 };
 
 let currentUser = null;
+let cachedUsers = []; // populated by loadUsers(); used by staff directory / profile pages
 
-function getUsers(){
-  const s=localStorage.getItem('cc_users');
-  if(s) return JSON.parse(s);
-  const d=[
-    {id:1,username:'sentinel',password:'Cowboy2026!',role:'sentinel',name:'Sentinel',title:'Founder & Chief System Architect',email:'sentinel@cowboychurchmaplevalley.com',avatar:'S',color:'#C9A84C',bio:'Sentinel is the founder and technical architect behind Cowboy Church of Maple Valley\'s digital presence.',phone:''},
-    {id:2,username:'pastor',password:'Pastor2026!',role:'pastor',name:'Pastor',title:'Pastor',email:'pastor@cowboychurchmaplevalley.com',avatar:'P',color:'#7A9474',bio:'Our beloved pastor leads Sunday worship, Bible study, and officiates all ceremonies.',phone:''},
-    {id:3,username:'mom',password:'Wedding2026!',role:'mom',name:'Mom',title:'Wedding Planner',email:'mom@cowboychurchmaplevalley.com',avatar:'M',color:'#C7745C',bio:'Our dedicated wedding planner ensures every couple\'s special day is absolutely perfect.',phone:''}
-  ];
-  localStorage.setItem('cc_users',JSON.stringify(d));
-  return d;
+// All staff data now lives in MongoDB Atlas behind netlify/functions/users.js.
+// Nothing here can be inspected via "view source" to obtain credentials —
+// the session cookie is httpOnly and passwords never reach the browser.
+
+async function loadUsers(){
+  const res = await fetch('/.netlify/functions/users', { credentials: 'include' });
+  if(!res.ok) return cachedUsers;
+  const data = await res.json();
+  cachedUsers = data.users || [];
+  return cachedUsers;
 }
-function saveUsers(u){localStorage.setItem('cc_users',JSON.stringify(u));}
 
-function initAuth(){
-  const sess=sessionStorage.getItem('cc_session');
-  if(!sess){ window.location.href='login.html'; return; }
-  currentUser=JSON.parse(sess);
-  // Verify user still exists & password hasn't changed them out
-  const users=getUsers();
-  const live=users.find(u=>u.id===currentUser.id);
-  if(!live){ doLogout(); return; }
-  // Merge latest profile data
-  currentUser={...currentUser,...live};
-  sessionStorage.setItem('cc_session',JSON.stringify(currentUser));
+async function initAuth(){
+  try{
+    const res = await fetch('/.netlify/functions/verify', { credentials: 'include' });
+    if(!res.ok){ window.location.href='login.html'; return; }
+    const data = await res.json();
+    currentUser = data.user;
+  } catch {
+    window.location.href='login.html';
+    return;
+  }
   buildNav();
   updateUserBlock();
+  await loadUsers();
 }
 
 function buildNav(){
@@ -1915,8 +1942,10 @@ function updateUserBlock(){
   document.getElementById('sb-urole').textContent=currentUser.title;
 }
 
-function doLogout(){
-  sessionStorage.removeItem('cc_session');
+async function doLogout(){
+  try{
+    await fetch('/.netlify/functions/logout', { method:'POST', credentials:'include' });
+  } catch { /* proceed to login page regardless */ }
   window.location.href='login.html';
 }
 
@@ -1949,8 +1978,8 @@ renderDashboard = function(){
 // ═══════════════════════════════════════════════
 let editingStaffId=null;
 
-function renderStaff(){
-  const users=getUsers();
+async function renderStaff(){
+  const users=await loadUsers();
   const container=document.getElementById('staff-cards');
   const roleColors={sentinel:'#C9A84C',pastor:'#7A9474',mom:'#C7745C'};
   const roleLabels={sentinel:'⚡ Sentinel',pastor:'✝️ Pastor',mom:'💍 Wedding Planner'};
@@ -1963,7 +1992,7 @@ function renderStaff(){
         <span class="badge badge-${u.role==='sentinel'?'yellow':u.role==='pastor'?'green':'red'}" style="margin-bottom:0.75rem;display:inline-block">${roleLabels[u.role]}</span>
         <div style="font-size:0.75rem;color:var(--text2);margin-bottom:0.1rem">🔑 @${u.username}</div>
         <div style="font-size:0.75rem;color:var(--text2);margin-bottom:1rem">✉️ ${u.email}</div>
-        <button class="btn btn-ghost btn-sm" style="width:100%" onclick="openStaffEdit(${u.id})">✏️ Edit</button>
+        <button class="btn btn-ghost btn-sm" style="width:100%" onclick="openStaffEdit('${u.id}')">✏️ Edit</button>
       </div>
     </div>`).join('');
   renderPublicStaffPreview(users);
@@ -1971,7 +2000,7 @@ function renderStaff(){
 
 function openStaffEdit(id){
   editingStaffId=id;
-  const users=getUsers();
+  const users=cachedUsers;
   const u=users.find(x=>x.id===id)||{};
   document.getElementById('staff-edit-who').textContent=`Editing: ${u.name} (${u.title})`;
   document.getElementById('staff-edit-body').innerHTML=`
@@ -1999,29 +2028,38 @@ function cancelStaffEdit(){
   document.getElementById('staff-edit-body').innerHTML='<div style="text-align:center;padding:2rem;color:var(--text2);font-size:0.85rem">Click ✏️ Edit on a staff card above</div>';
 }
 
-function saveStaffEdit(){
-  const users=getUsers();
-  const i=users.findIndex(x=>x.id===editingStaffId);
-  if(i<0){toast('User not found','error');return;}
+async function saveStaffEdit(){
   const newPass=document.getElementById('se-password').value;
-  users[i].name=document.getElementById('se-name').value;
-  users[i].title=document.getElementById('se-title').value;
-  users[i].username=document.getElementById('se-username').value;
-  users[i].email=document.getElementById('se-email').value;
-  users[i].phone=document.getElementById('se-phone').value;
-  users[i].avatar=document.getElementById('se-avatar').value;
-  users[i].color=document.getElementById('se-color').value;
-  users[i].bio=document.getElementById('se-bio').value;
-  if(newPass) users[i].password=newPass;
-  saveUsers(users);
-  // update session if editing self
-  if(users[i].id===currentUser.id){
-    currentUser={...currentUser,...users[i]};
-    sessionStorage.setItem('cc_session',JSON.stringify(currentUser));
+  const payload={
+    id: editingStaffId,
+    name: document.getElementById('se-name').value,
+    title: document.getElementById('se-title').value,
+    username: document.getElementById('se-username').value,
+    email: document.getElementById('se-email').value,
+    phone: document.getElementById('se-phone').value,
+    avatar: document.getElementById('se-avatar').value,
+    color: document.getElementById('se-color').value,
+    bio: document.getElementById('se-bio').value,
+  };
+  // A Sentinel resetting someone else's password doesn't need to prove
+  // the old one — the server only requires currentPassword when editing
+  // your own account (see netlify/functions/users.js).
+  if(newPass) payload.newPassword=newPass;
+
+  const res = await fetch('/.netlify/functions/users', {
+    method:'PUT', credentials:'include',
+    headers:{'content-type':'application/json'},
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok){ toast(data.error||'Could not update staff member','error'); return; }
+
+  if(editingStaffId===currentUser.id){
+    currentUser={...currentUser,...data.user};
     updateUserBlock();
   }
   cancelStaffEdit();
-  renderStaff();
+  await renderStaff();
   toast('Staff member updated!','success');
 }
 
@@ -2048,8 +2086,8 @@ function renderPublicStaffPreview(users){
 // MY PROFILE
 // ═══════════════════════════════════════════════
 function loadProfile(){
-  const users=getUsers();
-  const u=users.find(x=>x.id===currentUser.id)||{};
+  const users=cachedUsers;
+  const u=users.find(x=>x.id===currentUser.id)||currentUser||{};
   document.getElementById('prof-name').value=u.name||'';
   document.getElementById('prof-title').value=u.title||'';
   document.getElementById('prof-email').value=u.email||'';
@@ -2065,26 +2103,35 @@ function loadProfile(){
   document.getElementById('profile-role-badge').innerHTML=`<span class="badge badge-${u.role==='sentinel'?'yellow':u.role==='pastor'?'green':'red'}">${roleMap[u.role]||u.role}</span>`;
 }
 
-function saveProfile(){
-  const users=getUsers();
-  const i=users.findIndex(x=>x.id===currentUser.id);
-  if(i<0){toast('Session error','error');return;}
+async function saveProfile(){
   const newPass=document.getElementById('prof-pass-new').value;
   const conPass=document.getElementById('prof-pass-con').value;
   const curPass=document.getElementById('prof-pass-cur').value;
+  if(newPass && newPass!==conPass){toast('New passwords do not match','error');return;}
+
+  const payload={
+    id: currentUser.id,
+    name: document.getElementById('prof-name').value,
+    title: document.getElementById('prof-title').value,
+    email: document.getElementById('prof-email').value,
+    bio: document.getElementById('prof-bio').value,
+    phone: document.getElementById('prof-phone').value,
+  };
   if(newPass){
-    if(users[i].password!==curPass){toast('Current password is incorrect','error');return;}
-    if(newPass!==conPass){toast('New passwords do not match','error');return;}
-    users[i].password=newPass;
+    payload.newPassword=newPass;
+    payload.currentPassword=curPass; // verified server-side against the stored hash
   }
-  users[i].name=document.getElementById('prof-name').value;
-  users[i].title=document.getElementById('prof-title').value;
-  users[i].email=document.getElementById('prof-email').value;
-  users[i].bio=document.getElementById('prof-bio').value;
-  users[i].phone=document.getElementById('prof-phone').value;
-  saveUsers(users);
-  currentUser={...currentUser,...users[i]};
-  sessionStorage.setItem('cc_session',JSON.stringify(currentUser));
+
+  const res = await fetch('/.netlify/functions/users', {
+    method:'PUT', credentials:'include',
+    headers:{'content-type':'application/json'},
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok){ toast(data.error||'Current password is incorrect','error'); return; }
+
+  currentUser={...currentUser,...data.user};
+  await loadUsers();
   updateUserBlock();
   document.getElementById('prof-pass-cur').value='';
   document.getElementById('prof-pass-new').value='';
@@ -2113,8 +2160,12 @@ switchPage = function(page){
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
-initAuth();
-renderDashboard();
+(async function init(){
+  await initAuth(); // redirects to login.html itself if not authenticated
+  if(!currentUser) return; // initAuth() already redirected
+  await syncContentFromServer();
+  renderDashboard();
+})();
 </script>
 </body>
 </html>
