@@ -17,15 +17,48 @@ const { getDb } = require("./utils/db");
 const { getSessionFromEvent, toSafeUser } = require("./utils/auth");
 
 const SALT_ROUNDS = 12;
+const ROLES = new Set(["sentinel", "pastor", "mom"]);
+const USERNAME_PATTERN = /^[a-z0-9][a-z0-9._-]{1,63}$/;
+const COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
+const EDITABLE_PERMISSIONS = new Set([
+  "hero", "about", "venues", "services", "packages", "sermons", "events",
+  "testimonials", "donation", "contact", "footer", "bookings", "inquiries",
+  "branding", "seo", "settings",
+]);
+
+function normalizePermissions(value) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.map(String).filter((key) => EDITABLE_PERMISSIONS.has(key)))];
+}
+
+function isValidId(value) {
+  return ObjectId.isValid(value) && String(new ObjectId(value)) === String(value);
+}
 
 async function requireSession(event) {
   const session = getSessionFromEvent(event);
-  if (!session) return null;
-  return session;
+  if (!session || !isValidId(session.sub)) return null;
+  const db = await getDb();
+  const user = await db.collection("users").findOne({
+    _id: new ObjectId(session.sub),
+    active: { $ne: false },
+  });
+  if (!user || (user.sessionVersion || 0) !== (session.sessionVersion || 0)) return null;
+  return user;
 }
 
 exports.handler = async (event) => {
-  const session = await requireSession(event);
+  let session;
+  try {
+    session = await requireSession(event);
+  } catch (err) {
+    console.error("[users] session error:", err);
+    return {
+      statusCode: 500,
+      headers: { "content-type": "application/json", "cache-control": "no-store" },
+      body: JSON.stringify({ error: "Server error." }),
+    };
+  }
   if (!session) {
     return {
       statusCode: 401,
@@ -50,7 +83,9 @@ exports.handler = async (event) => {
   // ── GET: list all staff (safe fields only). Any logged-in user can
   // view the staff directory (it's also shown publicly on the site).
   if (event.httpMethod === "GET") {
-    const all = await users.find({}).sort({ _id: 1 }).toArray();
+    const all = session.role === "sentinel"
+      ? await users.find({}).sort({ _id: 1 }).toArray()
+      : [session];
     return {
       statusCode: 200,
       headers: { "content-type": "application/json" },
@@ -75,13 +110,21 @@ exports.handler = async (event) => {
     }
     const username = String(body.username || "").trim().toLowerCase();
     const password = String(body.password || "");
-    if (!username || !password || password.length < 8) {
+    const role = String(body.role || "mom").trim();
+    if (!USERNAME_PATTERN.test(username) || !password || password.length < 12) {
       return {
         statusCode: 400,
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          error: "Username and a password of at least 8 characters are required.",
+          error: "Use a valid username and a password of at least 12 characters.",
         }),
+      };
+    }
+    if (!ROLES.has(role)) {
+      return {
+        statusCode: 400,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ error: "Choose a valid staff role." }),
       };
     }
     const existing = await users.findOne({ username });
@@ -96,14 +139,17 @@ exports.handler = async (event) => {
     const doc = {
       username,
       passwordHash,
-      role: body.role || "mom",
+      role,
       name: body.name || username,
       title: body.title || "",
       email: body.email || "",
       phone: body.phone || "",
       avatar: body.avatar || username[0].toUpperCase(),
-      color: body.color || "#C7745C",
+      color: COLOR_PATTERN.test(body.color) ? body.color : "#C7745C",
       bio: body.bio || "",
+      permissions: normalizePermissions(body.permissions),
+      active: true,
+      sessionVersion: 0,
     };
     const result = await users.insertOne(doc);
     const created = await users.findOne({ _id: result.insertedId });
@@ -126,7 +172,7 @@ exports.handler = async (event) => {
     }
 
     const targetId = String(body.id || "");
-    if (!targetId) {
+    if (!isValidId(targetId)) {
       return {
         statusCode: 400,
         headers: { "content-type": "application/json" },
@@ -154,27 +200,54 @@ exports.handler = async (event) => {
 
     const update = {};
     ["name", "title", "email", "phone", "avatar", "color", "bio"].forEach((field) => {
-      if (typeof body[field] === "string") update[field] = body[field];
+      if (typeof body[field] === "string") update[field] = body[field].slice(0, 2000);
     });
+    if (update.color && !COLOR_PATTERN.test(update.color)) delete update.color;
 
     // Username/role changes: sentinel only (even for their own account,
     // to avoid accidentally locking themselves out of the role).
     if (session.role === "sentinel") {
       if (typeof body.username === "string" && body.username.trim()) {
-        update.username = body.username.trim().toLowerCase();
+        const username = body.username.trim().toLowerCase();
+        if (!USERNAME_PATTERN.test(username)) {
+          return {
+            statusCode: 400,
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ error: "Choose a valid username." }),
+          };
+        }
+        update.username = username;
       }
       if (typeof body.role === "string" && body.role.trim()) {
-        update.role = body.role.trim();
+        const role = body.role.trim();
+        if (!ROLES.has(role)) {
+          return {
+            statusCode: 400,
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ error: "Choose a valid staff role." }),
+          };
+        }
+        if (isSelf && role !== target.role) {
+          return {
+            statusCode: 400,
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ error: "You cannot change your own role." }),
+          };
+        }
+        update.role = role;
+      }
+      if (Array.isArray(body.permissions)) {
+        update.permissions = normalizePermissions(body.permissions);
       }
     }
 
     // Password change.
     if (typeof body.newPassword === "string" && body.newPassword) {
-      if (body.newPassword.length < 8) {
+      if (body.newPassword.length < 12) {
         return {
           statusCode: 400,
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ error: "New password must be at least 8 characters." }),
+          body: JSON.stringify({ error: "New password must be at least 12 characters." }),
         };
       }
       // If you're changing your OWN password, you must prove you know
@@ -196,6 +269,10 @@ exports.handler = async (event) => {
       update.passwordHash = await bcrypt.hash(body.newPassword, SALT_ROUNDS);
     }
 
+    if ("passwordHash" in update || "role" in update || "permissions" in update || "username" in update) {
+      update.sessionVersion = (target.sessionVersion || 0) + 1;
+    }
+
     await users.updateOne({ _id: target._id }, { $set: update });
     const updated = await users.findOne({ _id: target._id });
     return {
@@ -215,7 +292,7 @@ exports.handler = async (event) => {
       };
     }
     const targetId = event.queryStringParameters && event.queryStringParameters.id;
-    if (!targetId) {
+    if (!isValidId(targetId)) {
       return {
         statusCode: 400,
         headers: { "content-type": "application/json" },

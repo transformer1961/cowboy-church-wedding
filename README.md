@@ -67,7 +67,7 @@ npm install
 MONGODB_URI="mongodb+srv://..." npm run seed
 ```
 
-This prompts you to set a password for each of the three staff
+This prompts you to set a password of at least 12 characters for each of the three staff
 accounts (`sentinel`, `pastor`, `mom`) interactively — no password is
 ever written to a file or committed. Re-running the script later is
 safe; it skips usernames that already exist.
@@ -79,13 +79,11 @@ netlify dev      # local dev with functions + env vars from .env
 netlify deploy    # or connect the repo in the Netlify dashboard
 ```
 
-## Notes / things intentionally left out of scope
+## Notes
 
 - Only the three original roles (`sentinel`, `pastor`, `mom`) are
-  seeded. `netlify/functions/users.js` supports creating additional
-  accounts (`POST`, sentinel-only) — there's just no "Add Staff"
-  button wired up in the UI yet, since the original site didn't have
-  one either. Happy to add that if useful.
+  seeded. A Sentinel can add, edit, remove, and assign per-section
+  dashboard access to additional staff through **Staff Directory**.
 - The public pages' `/api/content` calls now point at
   `/.netlify/functions/content`, which returns whatever's been saved
   under the dashboard's existing content keys (`hero`, `about`,

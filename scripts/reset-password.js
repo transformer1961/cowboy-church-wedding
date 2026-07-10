@@ -91,16 +91,16 @@ async function main() {
   let password = "";
   let confirm = "";
   do {
-    password = await ask(rl, `New password for "${username}" (min 8 chars): `, {
+    password = await ask(rl, `New password for "${username}" (min 12 chars): `, {
       hidden: true,
     });
-    if (password.length < 8) {
+    if (password.length < 12) {
       console.log("  Too short. Try again.");
       continue;
     }
     confirm = await ask(rl, "Confirm password: ", { hidden: true });
     if (password !== confirm) console.log("  Passwords did not match. Try again.");
-  } while (password.length < 8 || password !== confirm);
+  } while (password.length < 12 || password !== confirm);
 
   rl.close();
 

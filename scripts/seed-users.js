@@ -146,16 +146,16 @@ async function main() {
     let password = "";
     let confirm = "";
     do {
-      password = await ask(rl, `Set a password for "${staff.username}" (min 8 chars): `, {
+      password = await ask(rl, `Set a password for "${staff.username}" (min 12 chars): `, {
         hidden: true,
       });
-      if (password.length < 8) {
+      if (password.length < 12) {
         console.log("  Too short — try again.");
         continue;
       }
       confirm = await ask(rl, "  Confirm password: ", { hidden: true });
       if (password !== confirm) console.log("  Passwords didn't match — try again.");
-    } while (password.length < 8 || password !== confirm);
+    } while (password.length < 12 || password !== confirm);
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
     await users.insertOne({ ...staff, passwordHash });

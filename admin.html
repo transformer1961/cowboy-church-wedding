@@ -2049,6 +2049,7 @@
         <h2>Staff Directory</h2>
         <p>Manage team members, roles, and login credentials</p>
       </div>
+      <button class="btn btn-gold" onclick="openStaffCreate()">Add Staff Member</button>
     </div>
     <div id="staff-cards" class="grid-3" style="margin-bottom:1.5rem"></div>
     <div class="card">
@@ -2124,16 +2125,31 @@
     };
 
     function load(key) { try { return JSON.parse(localStorage.getItem(KEYS[key])) || null } catch { return null } }
+    async function persistContent(key, data) {
+      try {
+        const res = await fetch('/.netlify/functions/content', {
+          method: 'PUT', credentials: 'include',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ key, data }),
+        });
+        if (!res.ok) {
+          const payload = await res.json().catch(() => ({}));
+          toast(payload.error || 'Could not save changes to the server', 'error');
+          return false;
+        }
+        return true;
+      } catch {
+        toast('Saved locally, but the server could not be reached', 'error');
+        return false;
+      }
+    }
+
     function save(key, data) {
       localStorage.setItem(KEYS[key], JSON.stringify(data));
       // Persist to MongoDB Atlas in the background so edits are visible to
       // every visitor/browser, not just this one. localStorage above still
       // makes reads instant and keeps the UI working offline.
-      fetch('/.netlify/functions/content', {
-        method: 'PUT', credentials: 'include',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ key, data }),
-      }).catch(() => { /* offline — local copy is still saved; will retry next save */ });
+      persistContent(key, data);
     }
 
     // Pulls the latest content from MongoDB into the local cache. Called once
@@ -2969,6 +2985,81 @@
       ],
     };
 
+    const PERMISSION_OPTIONS = [
+      { key: 'hero', label: 'Hero Section', group: 'Website Content' },
+      { key: 'about', label: 'About Section', group: 'Website Content' },
+      { key: 'venues', label: 'Venues', group: 'Website Content' },
+      { key: 'services', label: 'Services', group: 'Website Content' },
+      { key: 'packages', label: 'Wedding Packages', group: 'Website Content' },
+      { key: 'sermons', label: 'Sermons', group: 'Website Content' },
+      { key: 'events', label: 'Events', group: 'Website Content' },
+      { key: 'testimonials', label: 'Testimonials', group: 'Website Content' },
+      { key: 'donation', label: 'Donation Section', group: 'Website Content' },
+      { key: 'contact', label: 'Contact Info', group: 'Website Content' },
+      { key: 'footer', label: 'Footer', group: 'Website Content' },
+      { key: 'bookings', label: 'Bookings', group: 'Bookings & Leads' },
+      { key: 'inquiries', label: 'Inquiries', group: 'Bookings & Leads' },
+      { key: 'branding', label: 'Branding & Colors', group: 'Site Settings' },
+      { key: 'seo', label: 'SEO & Meta', group: 'Site Settings' },
+      { key: 'settings', label: 'General Settings', group: 'Site Settings' },
+    ];
+
+    const ROLE_DEFAULT_PERMISSIONS = {
+      sentinel: PERMISSION_OPTIONS.map(p => p.key),
+      pastor: ['sermons', 'events'],
+      mom: ['venues', 'packages', 'testimonials', 'bookings', 'inquiries'],
+    };
+
+    function permissionsForUser(user) {
+      if (!user) return [];
+      if (user.role === 'sentinel') return ROLE_DEFAULT_PERMISSIONS.sentinel;
+      // Accounts created before custom access existed have no permissions
+      // field and retain their role defaults. An empty array is intentional:
+      // it gives a staff member no dashboard sections.
+      return Array.isArray(user.permissions)
+        ? user.permissions
+        : (ROLE_DEFAULT_PERMISSIONS[user.role] || []);
+    }
+
+    function permissionCheckboxes(selected = [], disabled = false) {
+      const selectedSet = new Set(selected);
+      const groups = [...new Set(PERMISSION_OPTIONS.map(p => p.group))];
+      return groups.map(group => `
+        <div style="margin-top:0.85rem">
+          <div style="font-size:0.72rem;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.45rem">${group}</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.45rem">
+            ${PERMISSION_OPTIONS.filter(p => p.group === group).map(p => `
+              <label style="display:flex;align-items:center;gap:0.45rem;font-size:0.78rem;color:var(--text);background:rgba(255,255,255,0.03);border:1px solid var(--border2);border-radius:6px;padding:0.5rem 0.6rem">
+                <input type="checkbox" class="staff-perm" value="${p.key}" ${selectedSet.has(p.key) ? 'checked' : ''} ${disabled ? 'disabled' : ''}>
+                <span>${p.label}</span>
+              </label>`).join('')}
+          </div>
+        </div>`).join('');
+    }
+
+    function selectedStaffPermissions() {
+      return [...document.querySelectorAll('.staff-perm:checked')].map(el => el.value);
+    }
+
+    function rolePermissions(role) {
+      return ROLE_DEFAULT_PERMISSIONS[role] || [];
+    }
+
+    function buildGroupsFromPermissions(user) {
+      if (user?.role === 'sentinel') return ROLE_NAV.sentinel;
+      const allowed = new Set(permissionsForUser(user));
+      const groups = [
+        { group: 'Overview', items: [{ page: 'dashboard', ico: '📊', label: 'Dashboard' }] },
+      ];
+      const sourceGroups = ROLE_NAV.sentinel
+        .filter(g => !['Overview', 'Team'].includes(g.group))
+        .map(g => ({ ...g, items: g.items.filter(i => allowed.has(i.page)) }))
+        .filter(g => g.items.length);
+      groups.push(...sourceGroups);
+      groups.push({ group: 'Account', items: [{ page: 'profile', ico: '🪪', label: 'My Profile' }] });
+      return groups;
+    }
+
     let currentUser = null;
     let cachedUsers = []; // populated by loadUsers(); used by staff directory / profile pages
 
@@ -3001,7 +3092,7 @@
 
     function buildNav() {
       const nav = document.getElementById('main-nav');
-      const groups = ROLE_NAV[currentUser.role] || ROLE_NAV.sentinel;
+      const groups = buildGroupsFromPermissions(currentUser);
       nav.innerHTML = groups.map(g => `
     <div class="nav-group">
       <div class="nav-group-label">${g.group}</div>
@@ -3090,18 +3181,71 @@
       <div class="field"><label>Display Name</label><input id="se-name" value="${u.name || ''}"></div>
       <div class="field"><label>Title</label><input id="se-title" value="${u.title || ''}"></div>
       <div class="field"><label>Username (login)</label><input id="se-username" value="${u.username || ''}"></div>
+      <div class="field"><label>Role</label><select id="se-role" onchange="applyRoleDefaults(true)">
+        <option value="sentinel" ${u.role === 'sentinel' ? 'selected' : ''}>Sentinel</option>
+        <option value="pastor" ${u.role === 'pastor' ? 'selected' : ''}>Pastor</option>
+        <option value="mom" ${u.role === 'mom' ? 'selected' : ''}>Wedding Planner</option>
+      </select></div>
       <div class="field"><label>New Password <span style="color:var(--text2);font-weight:400">(leave blank to keep)</span></label><input type="password" id="se-password" placeholder="••••••••"></div>
       <div class="field"><label>Email</label><input id="se-email" value="${u.email || ''}" type="email"></div>
       <div class="field"><label>Phone</label><input id="se-phone" value="${u.phone || ''}"></div>
       <div class="field"><label>Avatar Letter</label><input id="se-avatar" value="${u.avatar || ''}" maxlength="2"></div>
       <div class="field"><label>Avatar Color</label><input type="color" id="se-color" value="${u.color || '#C7745C'}" style="height:40px;width:100%;padding:0.2rem;border-radius:6px;border:1px solid var(--border2);background:rgba(255,255,255,0.04);cursor:pointer"></div>
       <div class="field form-full"><label>Bio (public staff page)</label><textarea id="se-bio" style="min-height:80px">${u.bio || ''}</textarea></div>
+      <div class="field form-full">
+        <label>Dashboard Access</label>
+        <div style="font-size:0.76rem;color:var(--text2);margin-bottom:0.5rem">Turn on the sections this person can view and save. Sentinel always has every permission.</div>
+        <div id="staff-permissions">${permissionCheckboxes(permissionsForUser(u), u.role === 'sentinel')}</div>
+        <button type="button" class="btn btn-ghost btn-sm" style="margin-top:0.75rem" onclick="applyRoleDefaults(true)">Use Role Defaults</button>
+      </div>
     </div>
     <div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:1rem">
       <button class="btn btn-ghost" onclick="cancelStaffEdit()">Cancel</button>
+      ${u.id !== currentUser.id ? '<button class="btn btn-ghost" onclick="deleteStaffMember()">Remove Staff Member</button>' : ''}
       <button class="btn btn-rust" onclick="saveStaffEdit()">Save Changes</button>
     </div>`;
       document.getElementById('staff-edit-body').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function openStaffCreate() {
+      editingStaffId = null;
+      document.getElementById('staff-edit-who').textContent = 'Adding a new staff member';
+      document.getElementById('staff-edit-body').innerHTML = `
+    <div class="form-grid">
+      <div class="field"><label>Display Name</label><input id="se-name" placeholder="Name"></div>
+      <div class="field"><label>Title</label><input id="se-title" placeholder="Role label"></div>
+      <div class="field"><label>Username (login)</label><input id="se-username" placeholder="username"></div>
+      <div class="field"><label>Role</label><select id="se-role" onchange="applyRoleDefaults(true)">
+        <option value="mom">Wedding Planner</option>
+        <option value="pastor">Pastor</option>
+        <option value="sentinel">Sentinel</option>
+      </select></div>
+      <div class="field"><label>Password</label><input type="password" id="se-password" placeholder="At least 12 characters"></div>
+      <div class="field"><label>Email</label><input id="se-email" type="email" placeholder="email@example.com"></div>
+      <div class="field"><label>Phone</label><input id="se-phone"></div>
+      <div class="field"><label>Avatar Letter</label><input id="se-avatar" maxlength="2"></div>
+      <div class="field"><label>Avatar Color</label><input type="color" id="se-color" value="#C7745C" style="height:40px;width:100%;padding:0.2rem;border-radius:6px;border:1px solid var(--border2);background:rgba(255,255,255,0.04);cursor:pointer"></div>
+      <div class="field form-full"><label>Bio (public staff page)</label><textarea id="se-bio" style="min-height:80px"></textarea></div>
+      <div class="field form-full">
+        <label>Dashboard Access</label>
+        <div style="font-size:0.76rem;color:var(--text2);margin-bottom:0.5rem">Turn on the sections this person can view and save.</div>
+        <div id="staff-permissions">${permissionCheckboxes(rolePermissions('mom'))}</div>
+        <button type="button" class="btn btn-ghost btn-sm" style="margin-top:0.75rem" onclick="applyRoleDefaults(true)">Use Role Defaults</button>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:1rem">
+      <button class="btn btn-ghost" onclick="cancelStaffEdit()">Cancel</button>
+      <button class="btn btn-rust" onclick="createStaffMember()">Create Staff Member</button>
+    </div>`;
+      document.getElementById('staff-edit-body').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function applyRoleDefaults(force) {
+      const role = document.getElementById('se-role')?.value || 'mom';
+      const container = document.getElementById('staff-permissions');
+      if (!container) return;
+      if (!force && role !== 'sentinel') return;
+      container.innerHTML = permissionCheckboxes(rolePermissions(role), role === 'sentinel');
     }
 
     function cancelStaffEdit() {
@@ -3112,16 +3256,22 @@
 
     async function saveStaffEdit() {
       const newPass = document.getElementById('se-password').value;
+      if (newPass && editingStaffId === currentUser.id) {
+        toast('Use My Profile to change your own password', 'error');
+        return;
+      }
       const payload = {
         id: editingStaffId,
         name: document.getElementById('se-name').value,
         title: document.getElementById('se-title').value,
         username: document.getElementById('se-username').value,
+        role: document.getElementById('se-role').value,
         email: document.getElementById('se-email').value,
         phone: document.getElementById('se-phone').value,
         avatar: document.getElementById('se-avatar').value,
         color: document.getElementById('se-color').value,
         bio: document.getElementById('se-bio').value,
+        permissions: selectedStaffPermissions(),
       };
       // A Sentinel resetting someone else's password doesn't need to prove
       // the old one — the server only requires currentPassword when editing
@@ -3143,6 +3293,45 @@
       cancelStaffEdit();
       await renderStaff();
       toast('Staff member updated!', 'success');
+    }
+
+    async function createStaffMember() {
+      const payload = {
+        name: document.getElementById('se-name').value,
+        title: document.getElementById('se-title').value,
+        username: document.getElementById('se-username').value,
+        role: document.getElementById('se-role').value,
+        password: document.getElementById('se-password').value,
+        email: document.getElementById('se-email').value,
+        phone: document.getElementById('se-phone').value,
+        avatar: document.getElementById('se-avatar').value,
+        color: document.getElementById('se-color').value,
+        bio: document.getElementById('se-bio').value,
+        permissions: selectedStaffPermissions(),
+      };
+      const res = await fetch('/.netlify/functions/users', {
+        method: 'POST', credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { toast(data.error || 'Could not create staff member', 'error'); return; }
+      cancelStaffEdit();
+      await renderStaff();
+      toast('Staff member created!', 'success');
+    }
+
+    async function deleteStaffMember() {
+      const staff = cachedUsers.find(u => u.id === editingStaffId);
+      if (!staff || !confirm(`Remove ${staff.name}'s staff account? This cannot be undone.`)) return;
+      const res = await fetch(`/.netlify/functions/users?id=${encodeURIComponent(editingStaffId)}`, {
+        method: 'DELETE', credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { toast(data.error || 'Could not remove staff member', 'error'); return; }
+      cancelStaffEdit();
+      await renderStaff();
+      toast('Staff member removed.', 'success');
     }
 
     function renderPublicStaffPreview(users) {
@@ -3190,6 +3379,7 @@
       const conPass = document.getElementById('prof-pass-con').value;
       const curPass = document.getElementById('prof-pass-cur').value;
       if (newPass && newPass !== conPass) { toast('New passwords do not match', 'error'); return; }
+      if (newPass && newPass.length < 12) { toast('New password must be at least 12 characters', 'error'); return; }
 
       const payload = {
         id: currentUser.id,
@@ -3229,7 +3419,7 @@
     switchPage = function (page) {
       // Check role permission
       const role = currentUser?.role || 'sentinel';
-      const allAllowed = ROLE_NAV[role]?.flatMap(g => g.items.map(i => i.page)) || [];
+      const allAllowed = buildGroupsFromPermissions(currentUser).flatMap(g => g.items.map(i => i.page));
       if (page !== 'dashboard' && !allAllowed.includes(page)) {
         toast('You don\'t have access to that section', 'error');
         return;

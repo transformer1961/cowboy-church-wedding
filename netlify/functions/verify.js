@@ -32,7 +32,7 @@ exports.handler = async (event) => {
     const db = await getDb();
     const user = await db
       .collection("users")
-      .findOne({ _id: new ObjectId(session.sub) });
+      .findOne({ _id: new ObjectId(session.sub), active: { $ne: false } });
 
     if (!user) {
       // Account was deleted since the token was issued.
@@ -40,6 +40,14 @@ exports.handler = async (event) => {
         statusCode: 401,
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ error: "Account no longer exists." }),
+      };
+    }
+
+    if ((user.sessionVersion || 0) !== (session.sessionVersion || 0)) {
+      return {
+        statusCode: 401,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ error: "Session is no longer valid." }),
       };
     }
 

@@ -48,7 +48,16 @@ function getSecret() {
 // else (bio, phone, etc.) is re-fetched live from MongoDB on verify.
 function signSession(user) {
   return jwt.sign(
-    { sub: String(user._id), username: user.username, role: user.role },
+    {
+      sub: String(user._id),
+      username: user.username,
+      role: user.role,
+      sessionVersion: Number.isSafeInteger(user.sessionVersion) ? user.sessionVersion : 0,
+      permissions: Array.isArray(user.permissions) ? user.permissions : [],
+      // Older accounts do not have a permissions field. They keep their
+      // role defaults, while an explicit empty array means "no access".
+      permissionsConfigured: Array.isArray(user.permissions),
+    },
     getSecret(),
     { expiresIn: `${SESSION_HOURS}h` }
   );
@@ -93,12 +102,31 @@ function buildLogoutCookie() {
   });
 }
 
+function escapeForHtml(value) {
+  if (typeof value === "string") {
+    const decoded = value.replace(/&(amp|lt|gt|quot|#39);/g, (entity) => ({
+      "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": "\"", "&#39;": "'",
+    })[entity]);
+    return decoded
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+  if (Array.isArray(value)) return value.map(escapeForHtml);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, escapeForHtml(item)]));
+  }
+  return value;
+}
+
 // Strips password hash and other internal fields before ever sending a
 // user object back to the browser.
 function toSafeUser(user) {
   if (!user) return null;
-  const { passwordHash, _id, ...rest } = user;
-  return { id: String(_id), ...rest };
+  const { passwordHash, _id, sessionVersion, ...rest } = user;
+  return { id: String(_id), ...escapeForHtml(rest) };
 }
 
 module.exports = {
