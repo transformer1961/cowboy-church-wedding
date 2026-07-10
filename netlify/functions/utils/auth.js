@@ -6,18 +6,32 @@
 // same cookie name, signing secret, and expiry.
 
 const jwt = require("jsonwebtoken");
-const cookieModule = require("cookie");
-
-const cookie = cookieModule.default || cookieModule;
-const parseCookie = cookie.parse || cookieModule.parse;
-const serializeCookie = cookie.serialize || cookieModule.serialize;
-
-if (typeof parseCookie !== "function" || typeof serializeCookie !== "function") {
-  throw new Error("The cookie package did not expose parse/serialize helpers.");
-}
 
 const COOKIE_NAME = "cc_session";
 const SESSION_HOURS = 8;
+
+function parseCookie(header) {
+  return String(header || "")
+    .split(";")
+    .reduce((acc, part) => {
+      const index = part.indexOf("=");
+      if (index === -1) return acc;
+      const key = part.slice(0, index).trim();
+      const value = part.slice(index + 1).trim();
+      if (key) acc[key] = decodeURIComponent(value);
+      return acc;
+    }, {});
+}
+
+function serializeCookie(name, value, options = {}) {
+  const segments = [`${name}=${encodeURIComponent(value)}`];
+  if (options.maxAge !== undefined) segments.push(`Max-Age=${Math.floor(options.maxAge)}`);
+  if (options.path) segments.push(`Path=${options.path}`);
+  if (options.httpOnly) segments.push("HttpOnly");
+  if (options.secure) segments.push("Secure");
+  if (options.sameSite) segments.push(`SameSite=${options.sameSite}`);
+  return segments.join("; ");
+}
 
 function getSecret() {
   const secret = process.env.JWT_SECRET;
