@@ -6,7 +6,15 @@
 // same cookie name, signing secret, and expiry.
 
 const jwt = require("jsonwebtoken");
-const cookie = require("cookie");
+const cookieModule = require("cookie");
+
+const cookie = cookieModule.default || cookieModule;
+const parseCookie = cookie.parse || cookieModule.parse;
+const serializeCookie = cookie.serialize || cookieModule.serialize;
+
+if (typeof parseCookie !== "function" || typeof serializeCookie !== "function") {
+  throw new Error("The cookie package did not expose parse/serialize helpers.");
+}
 
 const COOKIE_NAME = "cc_session";
 const SESSION_HOURS = 8;
@@ -45,14 +53,14 @@ function verifySession(token) {
 function getSessionFromEvent(event) {
   const header = event.headers && (event.headers.cookie || event.headers.Cookie);
   if (!header) return null;
-  const parsed = cookie.parse(header);
+  const parsed = parseCookie(header);
   const token = parsed[COOKIE_NAME];
   if (!token) return null;
   return verifySession(token);
 }
 
 function buildSessionCookie(token) {
-  return cookie.serialize(COOKIE_NAME, token, {
+  return serializeCookie(COOKIE_NAME, token, {
     httpOnly: true,
     secure: true,
     sameSite: "lax",
@@ -62,7 +70,7 @@ function buildSessionCookie(token) {
 }
 
 function buildLogoutCookie() {
-  return cookie.serialize(COOKIE_NAME, "", {
+  return serializeCookie(COOKIE_NAME, "", {
     httpOnly: true,
     secure: true,
     sameSite: "lax",

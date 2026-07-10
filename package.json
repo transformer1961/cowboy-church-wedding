@@ -22,7 +22,7 @@
   "homepage": "https://github.com/transformer1961/cowboy-church-wedding#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "cookie": "^2.0.1",
+    "cookie": "^0.7.2",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.21.0"
   },
