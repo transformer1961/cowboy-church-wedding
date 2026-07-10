@@ -22,11 +22,11 @@
   "homepage": "https://github.com/transformer1961/cowboy-church-wedding#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "cookie": "^0.6.0",
+    "cookie": "^2.0.1",
     "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.8.0"
+    "mongodb": "^6.21.0"
   },
   "devDependencies": {
-    "netlify-cli": "^26.1.0"
+    "netlify-cli": "^24.0.1"
   }
 }
