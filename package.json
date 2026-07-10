@@ -6,7 +6,8 @@
   "scripts": {
     "build": "node -e \"console.log('Static Netlify site: no build step required.')\"",
     "test": "npm run build",
-    "seed": "node scripts/seed-users.js"
+    "seed": "node scripts/seed-users.js",
+    "check-password": "node scripts/check-password.js"
   },
   "repository": {
     "type": "git",

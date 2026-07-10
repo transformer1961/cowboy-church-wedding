@@ -16,10 +16,41 @@
 // Safe to re-run: existing usernames are skipped, not overwritten.
 
 const readline = require("readline");
+const fs = require("fs");
+const path = require("path");
 const { MongoClient } = require("mongodb");
 const bcrypt = require("bcryptjs");
 
 const SALT_ROUNDS = 12;
+
+function loadLocalEnv() {
+  const envPath = path.join(__dirname, "..", ".env");
+  if (!fs.existsSync(envPath)) return;
+
+  const lines = fs.readFileSync(envPath, "utf8").split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+
+    const index = trimmed.indexOf("=");
+    if (index === -1) continue;
+
+    const key = trimmed.slice(0, index).trim();
+    let value = trimmed.slice(index + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+
+    if (key && process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  }
+}
+
+loadLocalEnv();
 
 const STAFF_TO_CREATE = [
   {
@@ -97,10 +128,12 @@ async function main() {
   const dbName = process.env.MONGODB_DB || "cowboychurch";
 
   const client = new MongoClient(uri);
+  console.log(`Connecting to MongoDB database "${dbName}"...`);
   await client.connect();
   const db = client.db(dbName);
   const users = db.collection("users");
   await users.createIndex({ username: 1 }, { unique: true });
+  console.log("Connected. Checking staff accounts...");
 
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
 
